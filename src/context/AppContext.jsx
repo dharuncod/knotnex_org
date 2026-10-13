@@ -74,6 +74,9 @@ export function AppProvider({ children }) {
   const [editingEvent, setEditingEvent] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
   const [editingScheme, setEditingScheme] = useState(null);
+  const [selectedSchemeId, setSelectedSchemeId] = useState('sch-1');
+  const [selectedSchemeAppId, setSelectedSchemeAppId] = useState('sap-1');
+  const [schemeAppReturnView, setSchemeAppReturnView] = useState('schemes');
 
   // Modals & Popups
   const [activeModal, setActiveModal] = useState(null);
@@ -100,6 +103,70 @@ export function AppProvider({ children }) {
   const [orgProfile, setOrgProfile] = useState(initialOrgProfile);
   const [knowledgeCategories] = useState(initialState.knowledgeCategories || []);
   const [helpArticles] = useState(initialState.helpArticles || []);
+
+  // Account Settings (Display Name, Email, Phone, Organization Name, Subscription)
+  const [accountSettings, setAccountSettings] = useState(() => {
+    try {
+      const stored = localStorage.getItem('knotnex_account_settings');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+    return {
+      displayName: 'Ravi Prasanth',
+      email: 'ravi@knotnex.com',
+      phone: '+91 98765 43210',
+      orgName: 'Knotbox Technologies Foundation',
+      plan: 'Enterprise — Active Tier'
+    };
+  });
+
+  const updateAccountSettings = (newSettings) => {
+    setAccountSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem('knotnex_account_settings', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  // Support Queries State (User submitted queries / Ask Anything form)
+  const [supportQueries, setSupportQueries] = useState(() => {
+    try {
+      const stored = localStorage.getItem('knotnex_support_queries');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      {
+        id: 'SUP-9281',
+        createdAt: '12 Oct 2026, 14:30',
+        name: 'Ravi Prasanth',
+        email: 'ravi@knotnex.com',
+        category: 'Event Management & Ticketing',
+        subject: 'How do I generate attendee QR badges in bulk?',
+        message: 'We have 450 registered delegates for our upcoming Tech Summit. Can we export and trigger automatic QR badge generation directly to attendee WhatsApp/Email in batch mode?',
+        status: 'Resolved',
+        priority: 'Medium'
+      }
+    ];
+  });
+
+  const addSupportQuery = (query) => {
+    setSupportQueries(prev => {
+      const updated = [query, ...prev];
+      try {
+        localStorage.setItem('knotnex_support_queries', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
 
   // Show Toast Helper (Replaces previous popup immediately so notifications don't stack upwards)
   const showToast = (message, type = 'info') => {
@@ -270,6 +337,11 @@ export function AppProvider({ children }) {
   };
 
   // Scheme Helpers
+  const selectScheme = (id) => {
+    setSelectedSchemeId(id);
+    navigateTo('schemeDetails');
+  };
+
   const addScheme = (newScheme) => {
     const scheme = {
       ...newScheme,
@@ -284,6 +356,17 @@ export function AppProvider({ children }) {
   const updateScheme = (schemeId, updatedData) => {
     setSchemes(prev => prev.map(s => (s.id === schemeId ? { ...s, ...updatedData } : s)));
     showToast(`Scheme updated successfully!`, 'success');
+  };
+
+  const updateSchemeApplication = (appId, updatedData) => {
+    setSchemeApplications(prev => prev.map(a => (a.id === appId ? { ...a, ...updatedData } : a)));
+  };
+
+  const selectSchemeApplication = (appOrId, returnView = 'schemes') => {
+    const id = typeof appOrId === 'object' && appOrId ? appOrId.id : appOrId;
+    if (id) setSelectedSchemeAppId(id);
+    setSchemeAppReturnView(returnView);
+    navigateTo('schemeApplicationDetails');
   };
 
   // Campaign Helpers
@@ -352,6 +435,9 @@ export function AppProvider({ children }) {
   const selectedEvent = events.find(e => e.id === selectedEventId) || events[0];
   const selectedJob = jobs.find(j => j.id === selectedJobId) || jobs[0];
   const selectedTicket = tickets.find(t => t.id === selectedTicketId) || tickets[0];
+  const selectedScheme = schemes.find(s => s.id === selectedSchemeId) || schemes[0];
+  const selectedSchemeApplication =
+    schemeApplications.find(a => a.id === selectedSchemeAppId) || schemeApplications[0];
 
   const value = {
     // Nav & layout
@@ -395,6 +481,16 @@ export function AppProvider({ children }) {
     editingScheme,
     setEditingScheme,
     updateScheme,
+    selectedSchemeId,
+    setSelectedSchemeId,
+    selectedScheme,
+    selectScheme,
+    selectedSchemeAppId,
+    setSelectedSchemeAppId,
+    selectedSchemeApplication,
+    selectSchemeApplication,
+    schemeAppReturnView,
+    setSchemeAppReturnView,
     selectedTicketId,
     selectedTicket,
     setSelectedTicketId,
@@ -425,12 +521,20 @@ export function AppProvider({ children }) {
     setOrgProfile,
     knowledgeCategories,
     helpArticles,
+    // Account Settings & Support Queries
+    accountSettings,
+    updateAccountSettings,
+    supportQueries,
+    addSupportQuery,
     // Mutation Handlers
     addEvent,
     updateEvent,
     addJob,
     updateJob,
     addScheme,
+    updateScheme,
+    updateSchemeApplication,
+    setSchemeApplications,
     addCampaign,
     addAchievement,
     addContentPost,

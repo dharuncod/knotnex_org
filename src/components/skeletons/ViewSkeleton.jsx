@@ -38,6 +38,9 @@ export default function ViewSkeleton({ viewKey }) {
       return <CreateOpportunitySkeleton />;
     case 'schemes':
       return <SchemesSkeleton />;
+    case 'schemeDetails':
+    case 'schemeApplicationDetails':
+      return <EventDetailsSkeleton />;
     case 'createScheme':
       return <CreateSchemeSkeleton />;
     case 'achievements':

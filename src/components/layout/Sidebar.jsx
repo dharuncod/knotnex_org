@@ -16,8 +16,8 @@ export default function Sidebar() {
   // Single-open accordion state: only ONE menu ('events' | 'careers' | 'schemes') can be open at a time!
   const [openMenu, setOpenMenu] = useState(() => {
     if (['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView)) return 'events';
-    if (['careers', 'createOpportunity'].includes(activeView)) return 'careers';
-    if (['schemes', 'createScheme'].includes(activeView)) return 'schemes';
+    if (['careers', 'careerDetails', 'createOpportunity'].includes(activeView)) return 'careers';
+    if (['schemes', 'schemeDetails', 'createScheme'].includes(activeView)) return 'schemes';
     return null;
   });
 
@@ -25,9 +25,9 @@ export default function Sidebar() {
   useEffect(() => {
     if (['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView)) {
       setOpenMenu('events');
-    } else if (['careers', 'createOpportunity'].includes(activeView)) {
+    } else if (['careers', 'careerDetails', 'createOpportunity'].includes(activeView)) {
       setOpenMenu('careers');
-    } else if (['schemes', 'createScheme'].includes(activeView)) {
+    } else if (['schemes', 'schemeDetails', 'createScheme'].includes(activeView)) {
       setOpenMenu('schemes');
     }
   }, [activeView]);
@@ -45,8 +45,8 @@ export default function Sidebar() {
   };
 
   const isEventsActive = ['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView);
-  const isCareersActive = ['careers', 'createOpportunity'].includes(activeView);
-  const isSchemesActive = ['schemes', 'createScheme'].includes(activeView);
+  const isCareersActive = ['careers', 'careerDetails', 'createOpportunity'].includes(activeView);
+  const isSchemesActive = ['schemes', 'schemeDetails', 'createScheme'].includes(activeView);
 
   return (
     <>
@@ -72,15 +72,18 @@ export default function Sidebar() {
               title="Go to Home"
             >
               {!isSidebarCollapsed ? (
-                <img
-                  src="/assets/assets/logo/logo-knotnex-purple-with-text.svg"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = '/assets/assets/logo/logo-knotnex-purple-with-text.png';
-                  }}
-                  alt="knotnex"
-                  className="brand-logo-full"
-                />
+                <>
+                  <img
+                    src="/assets/assets/logo/logo-knotnex-purple-with-text.svg"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/assets/assets/logo/logo-knotnex-purple-with-text.png';
+                    }}
+                    alt="knotnex"
+                    className="brand-logo-full"
+                  />
+                  <span className="brand-org-tag" title="Organization Dashboard">org</span>
+                </>
               ) : (
                 <img
                   src="/assets/assets/logo/knotnex-icon.png"
@@ -283,9 +286,9 @@ export default function Sidebar() {
               <span className="nav-section-label">HELP &amp; SUPPORT</span>
 
               <div
-                className={`sidebar-nav-pill ${activeView === 'helpCenter' ? 'active' : ''}`}
+                className={`sidebar-nav-pill ${activeView === 'helpCenter' || activeView === 'support' ? 'active' : ''}`}
                 onClick={() => navigateTo('helpCenter')}
-                title="Help Center"
+                title="Support"
               >
                 <span className="nav-pill-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -294,7 +297,7 @@ export default function Sidebar() {
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </span>
-                {!isSidebarCollapsed && <span className="nav-pill-title">Help Center</span>}
+                {!isSidebarCollapsed && <span className="nav-pill-title">Support</span>}
               </div>
 
               <div

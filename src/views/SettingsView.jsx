@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { SettingsSectionSkeleton } from '../components/skeletons';
 
@@ -31,13 +31,63 @@ const SECTION_CONFIG = {
 };
 
 export default function SettingsView() {
-  const { isDarkMode, toggleDarkMode, showToast } = useApp();
+  const { isDarkMode, toggleDarkMode, showToast, accountSettings, updateAccountSettings } = useApp();
   const [activeSection, setActiveSection] = useState('account');
   const [isTabLoading, setIsTabLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [accountFormData, setAccountFormData] = useState({
+    displayName: accountSettings?.displayName || 'Ravi Prasanth',
+    email: accountSettings?.email || 'ravi@knotnex.com',
+    phone: accountSettings?.phone || '+91 98765 43210',
+    orgName: accountSettings?.orgName || 'Knotbox Technologies Foundation',
+    plan: accountSettings?.plan || 'Enterprise — Active Tier'
+  });
+
+  useEffect(() => {
+    if (!isEditing && accountSettings) {
+      setAccountFormData({
+        displayName: accountSettings.displayName || '',
+        email: accountSettings.email || '',
+        phone: accountSettings.phone || '',
+        orgName: accountSettings.orgName || '',
+        plan: accountSettings.plan || 'Enterprise — Active Tier'
+      });
+    }
+  }, [accountSettings, isEditing]);
+
+  const handleSave = (e) => {
+    if (e) e.preventDefault();
+    if (!accountFormData.displayName.trim()) {
+      showToast('Display Name cannot be empty', 'error');
+      return;
+    }
+    if (!accountFormData.email.trim()) {
+      showToast('Email Address cannot be empty', 'error');
+      return;
+    }
+    updateAccountSettings(accountFormData);
+    setIsEditing(false);
+    showToast('Changes saved successfully!', 'success');
+  };
+
+  const handleCancel = () => {
+    if (accountSettings) {
+      setAccountFormData({
+        displayName: accountSettings.displayName || '',
+        email: accountSettings.email || '',
+        phone: accountSettings.phone || '',
+        orgName: accountSettings.orgName || '',
+        plan: accountSettings.plan || 'Enterprise — Active Tier'
+      });
+    }
+    setIsEditing(false);
+  };
 
   const handleSectionChange = (sectionKey) => {
     if (sectionKey === activeSection) return;
     setIsTabLoading(true);
+    setIsEditing(false);
     setActiveSection(sectionKey);
     setTimeout(() => {
       setIsTabLoading(false);
@@ -74,11 +124,50 @@ export default function SettingsView() {
           <h3>{config.title}</h3>
           <p>{config.subtitle}</p>
         </div>
-        <div className="settings-section-path" id={`settingsSectionPath-${key}`}>
-          <span className="path-root">settings</span>
-          <span className="path-sep">/</span>
-          <span className="path-leaf">{config.path}</span>
-        </div>
+        {key === 'account' && (
+          <div className="settings-section-head-actions">
+            {!isEditing ? (
+              <button
+                type="button"
+                className="btn-secondary"
+                id="btnCardEditAccount"
+                onClick={() => setIsEditing(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', fontSize: '13px' }}
+                title="Edit account details"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                <span>Edit</span>
+              </button>
+            ) : (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  id="btnCardCancelAccount"
+                  onClick={handleCancel}
+                  style={{ padding: '6px 12px', fontSize: '13px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  id="btnCardSaveAccount"
+                  onClick={handleSave}
+                  style={{ padding: '6px 16px', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -99,11 +188,49 @@ export default function SettingsView() {
           </div>
         </div>
         <div className="header-actions">
-          <div className="settings-section-path" id="settingsTopHeaderPath" title={`Active path: settings/${SECTION_CONFIG[activeSection]?.path || activeSection}`}>
-            <span className="path-root">settings</span>
-            <span className="path-sep">/</span>
-            <span className="path-leaf">{SECTION_CONFIG[activeSection]?.path || activeSection}</span>
-          </div>
+          {activeSection === 'account' && (
+            <div>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  id="btnTopEditAccountSettings"
+                  onClick={() => setIsEditing(true)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Edit account details"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span>Edit</span>
+                </button>
+              ) : (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    id="btnTopCancelAccountSettings"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    id="btnTopSaveAccountSettings"
+                    onClick={handleSave}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -158,48 +285,170 @@ export default function SettingsView() {
             <div className="settings-section active" id="settingsSectionAccount">
               {renderSectionHead('account')}
 
-              <div className="settings-group">
-                <div className="settings-group-label">Profile</div>
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-title">Display Name</div>
-                    <div className="settings-row-desc">Ravi Prasanth</div>
+              <form onSubmit={handleSave}>
+                <div className="settings-group">
+                  <div className="settings-group-label">Profile</div>
+                  
+                  <div className="settings-row" style={{ alignItems: isEditing ? 'flex-start' : 'center' }}>
+                    <div className="settings-row-info">
+                      <div className="settings-row-title">Display Name</div>
+                      {isEditing ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <input
+                            type="text"
+                            className="form-input"
+                            id="accountInputDisplayName"
+                            style={{ width: '100%', maxWidth: '380px' }}
+                            value={accountFormData.displayName}
+                            onChange={(e) => setAccountFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                            placeholder="Enter your display name"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="settings-row-desc">{accountSettings?.displayName || 'Ravi Prasanth'}</div>
+                      )}
+                    </div>
                   </div>
-                  <button className="settings-row-action" onClick={() => showToast('Editing display name')}>Edit</button>
-                </div>
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-title">Email Address</div>
-                    <div className="settings-row-desc">ravi@knotnex.com</div>
-                  </div>
-                  <button className="settings-row-action" onClick={() => showToast('Verification link sent')}>Change</button>
-                </div>
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-title">Phone Number</div>
-                    <div className="settings-row-desc">+91 98765 43210</div>
-                  </div>
-                  <button className="settings-row-action" onClick={() => showToast('Updating phone')}>Update</button>
-                </div>
-              </div>
 
-              <div className="settings-group">
-                <div className="settings-group-label">Organization</div>
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-title">Organization Name</div>
-                    <div className="settings-row-desc">Knotbox Technologies Foundation</div>
+                  <div className="settings-row" style={{ alignItems: isEditing ? 'flex-start' : 'center' }}>
+                    <div className="settings-row-info">
+                      <div className="settings-row-title">Email Address</div>
+                      {isEditing ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <input
+                            type="email"
+                            className="form-input"
+                            id="accountInputEmail"
+                            style={{ width: '100%', maxWidth: '380px' }}
+                            value={accountFormData.email}
+                            onChange={(e) => setAccountFormData(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="Enter your email address"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="settings-row-desc">{accountSettings?.email || 'ravi@knotnex.com'}</div>
+                      )}
+                    </div>
                   </div>
-                  <button className="settings-row-action" onClick={() => showToast('Editing organization legal name')}>Edit</button>
-                </div>
-                <div className="settings-row">
-                  <div className="settings-row-info">
-                    <div className="settings-row-title">Subscription Plan</div>
-                    <div className="settings-row-desc">Enterprise — Active Tier</div>
+
+                  <div className="settings-row" style={{ alignItems: isEditing ? 'flex-start' : 'center' }}>
+                    <div className="settings-row-info">
+                      <div className="settings-row-title">Phone Number</div>
+                      {isEditing ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            id="accountInputPhone"
+                            style={{ width: '100%', maxWidth: '380px' }}
+                            value={accountFormData.phone}
+                            onChange={(e) => setAccountFormData(prev => ({ ...prev, phone: e.target.value }))}
+                            placeholder="Enter contact phone number"
+                          />
+                        </div>
+                      ) : (
+                        <div className="settings-row-desc">{accountSettings?.phone || '+91 98765 43210'}</div>
+                      )}
+                    </div>
                   </div>
-                  <button className="settings-row-action btn-primary-sm" onClick={() => showToast('Subscription active')}>Manage</button>
                 </div>
-              </div>
+
+                <div className="settings-group" style={{ marginTop: '16px' }}>
+                  <div className="settings-group-label">Organization</div>
+                  
+                  <div className="settings-row" style={{ alignItems: isEditing ? 'flex-start' : 'center' }}>
+                    <div className="settings-row-info">
+                      <div className="settings-row-title">Organization Name</div>
+                      {isEditing ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <input
+                            type="text"
+                            className="form-input"
+                            id="accountInputOrgName"
+                            style={{ width: '100%', maxWidth: '380px' }}
+                            value={accountFormData.orgName}
+                            onChange={(e) => setAccountFormData(prev => ({ ...prev, orgName: e.target.value }))}
+                            placeholder="Enter organization legal name"
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="settings-row-desc">{accountSettings?.orgName || 'Knotbox Technologies Foundation'}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="settings-row" style={{ alignItems: isEditing ? 'flex-start' : 'center' }}>
+                    <div className="settings-row-info">
+                      <div className="settings-row-title">Subscription Plan</div>
+                      {isEditing ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <select
+                            className="form-select"
+                            id="accountSelectPlan"
+                            style={{ width: '100%', maxWidth: '380px' }}
+                            value={accountFormData.plan}
+                            onChange={(e) => setAccountFormData(prev => ({ ...prev, plan: e.target.value }))}
+                          >
+                            <option value="Enterprise — Active Tier">Enterprise — Active Tier</option>
+                            <option value="Growth — Active Tier">Growth — Active Tier</option>
+                            <option value="Starter — Basic Tier">Starter — Basic Tier</option>
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="settings-row-desc">{accountSettings?.plan || 'Enterprise — Active Tier'}</div>
+                      )}
+                    </div>
+                    {!isEditing && (
+                      <span className="status-badge active" style={{ padding: '4px 10px', fontSize: '12px' }}>
+                        ● Active Tier
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom Action Row when in Edit Mode */}
+                {isEditing && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginTop: '16px',
+                      padding: '14px 20px',
+                      background: 'var(--bg-surface-subtle, #F8FAFC)',
+                      borderRadius: '12px',
+                      border: '1px solid var(--border-default, #E2E8F0)'
+                    }}
+                  >
+                    <span style={{ fontSize: '13px', color: 'var(--neutral-500, #64748B)', marginRight: 'auto' }}>
+                      You have unsaved changes.
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      id="btnBottomCancelAccount"
+                      onClick={handleCancel}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      id="btnBottomSaveAccount"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>Save Changes</span>
+                    </button>
+                  </div>
+                )}
+              </form>
             </div>
           )}
 

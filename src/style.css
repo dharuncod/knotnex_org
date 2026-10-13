@@ -3357,14 +3357,47 @@ html, body {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 5px;
 }
 
 .brand-logo-full {
-  height: 44px;
+  height: 38px;
   width: auto;
-  max-width: 180px;
+  max-width: 142px;
   object-fit: contain;
   display: block;
+}
+
+.brand-org-tag {
+  font-family: inherit; /* Inherits exact font ('Google Sans', sans-serif) from .sidebar */
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #9CA3AF; /* Light gray color exactly matching MAIN MENU */
+  line-height: 1;
+  user-select: none;
+  text-transform: uppercase; /* Matches MAIN MENU uppercase typography */
+  letter-spacing: 0.05em; /* Matches MAIN MENU 0.05em letter-spacing */
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: inline-block;
+  align-self: center;
+  transition: color 0.15s ease;
+}
+
+.brand-logo-clickable:hover .brand-org-tag {
+  color: #64748B;
+}
+
+body.dark-mode .brand-org-tag {
+  color: #9CA3AF;
+  background: transparent;
+  border: none;
+}
+
+body.dark-mode .brand-logo-clickable:hover .brand-org-tag {
+  color: #E2E8F0;
 }
 
 .brand-logo-collapsed {

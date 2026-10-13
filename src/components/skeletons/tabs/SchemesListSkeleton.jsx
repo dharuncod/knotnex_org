@@ -47,10 +47,11 @@ export function SchemeApplicationsSkeleton({ rows = 5 }) {
         <thead>
           <tr>
             <th style={{ width: '22%' }}><SkeletonLine width="90px" height="12px" /></th>
-            <th style={{ width: '28%' }}><SkeletonLine width="120px" height="12px" /></th>
-            <th style={{ width: '18%' }}><SkeletonLine width="80px" height="12px" /></th>
-            <th style={{ width: '16%' }}><SkeletonLine width="75px" height="12px" /></th>
-            <th style={{ width: '16%', textAlign: 'right' }}><SkeletonLine width="60px" height="12px" style={{ marginLeft: 'auto' }} /></th>
+            <th style={{ width: '24%' }}><SkeletonLine width="120px" height="12px" /></th>
+            <th style={{ width: '16%' }}><SkeletonLine width="80px" height="12px" /></th>
+            <th style={{ width: '14%' }}><SkeletonLine width="75px" height="12px" /></th>
+            <th style={{ width: '10%', textAlign: 'center' }}><SkeletonLine width="45px" height="12px" style={{ margin: '0 auto' }} /></th>
+            <th style={{ width: '14%', textAlign: 'right' }}><SkeletonLine width="60px" height="12px" style={{ marginLeft: 'auto' }} /></th>
           </tr>
         </thead>
         <tbody>
@@ -68,6 +69,9 @@ export function SchemeApplicationsSkeleton({ rows = 5 }) {
               <td><SkeletonLine width="160px" height="13px" /></td>
               <td><SkeletonLine width="90px" height="12px" /></td>
               <td><SkeletonPill width={80} height={22} style={{ borderRadius: '999px' }} /></td>
+              <td style={{ textAlign: 'center' }}>
+                <SkeletonBtn width="55px" height="26px" style={{ borderRadius: '6px', margin: '0 auto' }} />
+              </td>
               <td style={{ textAlign: 'right' }}>
                 <SkeletonBtn width="75px" height="28px" style={{ borderRadius: '6px', marginLeft: 'auto' }} />
               </td>
