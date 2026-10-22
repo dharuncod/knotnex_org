@@ -324,7 +324,6 @@ export default function EventEligibilityScreen({
                 ))}
               </div>
             </div>
-
             {/* 2. Chief Guests & Speakers */}
             <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E2E8F0', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -416,7 +415,6 @@ export default function EventEligibilityScreen({
                   + Add Sponsor
                 </button>
               </div>
-
               {isAddingSponsor && (
                 <div style={{ background: '#F8FAFC', padding: 12, borderRadius: 10, border: '1px solid #E2E8F0', marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <input
@@ -440,7 +438,6 @@ export default function EventEligibilityScreen({
                   </div>
                 </div>
               )}
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {sponsors.length === 0 && !isAddingSponsor && (
                   <div style={{ fontSize: 12.5, color: '#94A3B8', fontStyle: 'italic', padding: '6px 0' }}>
@@ -471,7 +468,6 @@ export default function EventEligibilityScreen({
                 ))}
               </div>
             </div>
-
             {/* 4. Event Photos & Media */}
             <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E2E8F0', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>

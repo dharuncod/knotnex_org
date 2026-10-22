@@ -23,7 +23,10 @@ export default function SidebarSkeleton() {
         {/* Top Brand Logo Skeleton */}
         <div className="sidebar-brand-container" style={{ padding: '8px 10px 24px', display: 'flex', alignItems: 'center' }}>
           {!isSidebarCollapsed ? (
-            <SkeletonBox width="124px" height="28px" radius={6} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <SkeletonBox width="112px" height="28px" radius={6} />
+              <SkeletonLine width="24px" height="14px" />
+            </div>
           ) : (
             <SkeletonBox width="34px" height="34px" radius={8} />
           )}
@@ -116,7 +119,7 @@ export default function SidebarSkeleton() {
           <div className="nav-group-section" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {!isSidebarCollapsed && <SkeletonLine width="90px" height="10px" style={{ marginLeft: '10px' }} />}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {/* Help Center */}
+              {/* Support */}
               <div
                 style={{
                   height: '40px',

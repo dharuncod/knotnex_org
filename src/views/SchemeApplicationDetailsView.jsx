@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { getUserAvatar } from '../data/initialData';
 
@@ -53,7 +54,31 @@ export default function SchemeApplicationDetailsView() {
   };
 
   const handleDownloadDoc = (docName) => {
-    showToast(`Downloading artifact: ${docName}`, 'info');
+    try {
+      const content = `KNOTNEX GRANT SCHEME PORTAL
+===========================================
+Document: ${docName}
+Applicant: ${app.applicant || app.name || 'Applicant'}
+Scheme: ${app.schemeTitle || app.scheme || 'Scheme'}
+Grant Requested: ${app.requestedAmount || app.funding || 'N/A'}
+Date: ${app.date || new Date().toLocaleDateString()}
+Status: Verified Official Institutional Artifact
+===========================================
+This document contains official verification records and audited attachments submitted through the Knotnex Organization Management Portal.
+`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = docName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast(`Downloaded: ${docName}`, 'success');
+    } catch {
+      showToast(`Downloading artifact: ${docName}`, 'info');
+    }
   };
 
   const handleExportDossier = () => {
@@ -160,7 +185,7 @@ export default function SchemeApplicationDetailsView() {
                 type="button"
                 className="btn-primary"
                 onClick={() => setShowConfirmModal(true)}
-                style={{ height: '38px', padding: '0 18px', fontSize: '13px', fontWeight: 600, background: '#6336EB' }}
+                style={{ height: '38px', padding: '0 18px', fontSize: '13px', fontWeight: 600, background: '#6336EB', borderColor: '#6336EB' }}
               >
                 Approve Application
               </button>
@@ -177,20 +202,20 @@ export default function SchemeApplicationDetailsView() {
           </div>
         </header>
 
-        {/* 3. Applicant Profile Hero Card */}
+        {/* 3. Hero Identity Card */}
         <div
           style={{
             background: 'var(--bg-card, #FFFFFF)',
-            borderRadius: '16px',
             border: '1px solid var(--border-default)',
+            borderRadius: '16px',
             padding: '24px',
-            marginBottom: '24px',
+            marginBottom: '20px',
             boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '20px'
+            gap: '18px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
@@ -256,16 +281,16 @@ export default function SchemeApplicationDetailsView() {
           </div>
         </div>
 
-        {/* 4. Core Details Parameters Grid (2x3 Grid matching screenshot cards) */}
+        {/* 4. Core Details Parameters Grid (2x3 Grid) */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '18px',
+            gap: '14px',
             marginBottom: '24px'
           }}
         >
-          {/* Item 1: Target Scheme Program */}
+          {/* Item 1: Applied Grant Scheme */}
           <div
             style={{
               background: 'var(--bg-card, #FFFFFF)',
@@ -276,14 +301,14 @@ export default function SchemeApplicationDetailsView() {
             }}
           >
             <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
-              Target Scheme Program
+              Applied Grant Scheme
             </span>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <span style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
               {app.schemeTitle || app.scheme}
             </span>
           </div>
 
-          {/* Item 2: Funding Grant Requested */}
+          {/* Item 2: Funding Requested */}
           <div
             style={{
               background: 'var(--bg-card, #FFFFFF)',
@@ -296,7 +321,7 @@ export default function SchemeApplicationDetailsView() {
             <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
               Funding Grant Requested
             </span>
-            <span style={{ fontSize: '17px', fontWeight: 700, color: '#12B76A' }}>
+            <span style={{ fontSize: '17px', fontWeight: 700, color: '#6336EB' }}>
               {app.requestedAmount || app.funding || '₹10,00,000'}
             </span>
           </div>
@@ -388,20 +413,10 @@ export default function SchemeApplicationDetailsView() {
           <h3 style={{ margin: '0 0 12px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Proposal & Project Summary
           </h3>
-          <div
-            style={{
-              background: 'var(--bg-subtle, #F8FAFC)',
-              border: '1px solid var(--border-default)',
-              borderRadius: '12px',
-              padding: '16px 18px',
-              fontSize: '14px',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6
-            }}
-          >
+          <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
             {app.summary ||
-              'Comprehensive project summary detailing technology deployment, beneficiary reach, sustainability milestones, and measurable community outcomes.'}
-          </div>
+              'This initiative proposes comprehensive infrastructure deployment, measurable social and technical impact metrics, and rigorous milestone-based grant utilization audited under organizational governance rules.'}
+          </p>
         </div>
 
         {/* 6. Submitted Documentation & Artifacts */}
@@ -442,11 +457,11 @@ export default function SchemeApplicationDetailsView() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '34px',
+                      height: '34px',
                       borderRadius: '8px',
-                      background: doc.type === 'pdf' ? '#FEE4E2' : '#D1FADF',
-                      color: doc.type === 'pdf' ? '#D92D20' : '#039855',
+                      background: '#F4F3FF',
+                      color: '#6336EB',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -482,9 +497,23 @@ export default function SchemeApplicationDetailsView() {
                     type="button"
                     className="btn-secondary"
                     onClick={() => handleDownloadDoc(doc.name)}
-                    style={{ height: '30px', padding: '0 10px', fontSize: '12px' }}
+                    style={{
+                      height: '32px',
+                      padding: '0 14px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer'
+                    }}
                   >
-                    Download
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Download</span>
                   </button>
                 </div>
               </div>
@@ -508,84 +537,92 @@ export default function SchemeApplicationDetailsView() {
           </h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-            <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid var(--border-default)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#027A48', fontWeight: 600, fontSize: '12px', marginBottom: '4px' }}>
-                <span>✓ Stage 1</span>
+            <div
+              style={{
+                background: 'var(--bg-subtle, #F8FAFC)',
+                padding: '14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border-default)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ color: '#027A48', fontWeight: 700 }}>✓ Stage 1</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>· 02 Sep</span>
               </div>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-                Application Intake
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
+                Document Screening
               </span>
-              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                Submitted {app.date || 'Recent'}
-              </span>
-            </div>
-
-            <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid var(--border-default)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#027A48', fontWeight: 600, fontSize: '12px', marginBottom: '4px' }}>
-                <span>✓ Stage 2</span>
-              </div>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-                Legal & Tax 12A/80G Audit
-              </span>
-              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                Passed compliance checks
-              </span>
-            </div>
-
-            <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid var(--border-default)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#027A48', fontWeight: 600, fontSize: '12px', marginBottom: '4px' }}>
-                <span>✓ Stage 3</span>
-              </div>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-                Technical Feasibility & Scoring
-              </span>
-              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                Peer Review: {app.score || '9.6 / 10'}
-              </span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>Passed tax & registration check</span>
             </div>
 
             <div
               style={{
+                background: 'var(--bg-subtle, #F8FAFC)',
                 padding: '14px',
-                background: isApproved ? '#ECFDF3' : '#FFFBEB',
                 borderRadius: '10px',
-                border: `1px solid ${isApproved ? '#A6F4C5' : '#FEDF89'}`
+                border: '1px solid var(--border-default)'
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: isApproved ? '#027A48' : '#B54708',
-                  fontWeight: 600,
-                  fontSize: '12px',
-                  marginBottom: '4px'
-                }}
-              >
-                <span>{isApproved ? '✓ Stage 4' : '⏳ Stage 4'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ color: '#027A48', fontWeight: 700 }}>✓ Stage 2</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>· 05 Sep</span>
               </div>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
-                Final Discretionary Sanction
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
+                Technical Verification
+              </span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>Assessed by Independent Expert Jury</span>
+            </div>
+
+            <div
+              style={{
+                background: 'var(--bg-subtle, #F8FAFC)',
+                padding: '14px',
+                borderRadius: '10px',
+                border: '1px solid var(--border-default)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ color: '#027A48', fontWeight: 700 }}>✓ Stage 3</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>· 08 Sep</span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
+                Site Audit & Diligence
+              </span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>On-ground physical campus audit cleared</span>
+            </div>
+
+            <div
+              style={{
+                background: isApproved ? 'var(--bg-subtle, #F8FAFC)' : '#F4F3FF',
+                padding: '14px',
+                borderRadius: '10px',
+                border: isApproved ? '1px solid var(--border-default)' : '1px solid #D9D6FE'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ color: isApproved ? '#027A48' : '#6336EB', fontWeight: 700 }}>
+                  {isApproved ? '✓ Final' : '⏳ Current'}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>· September</span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
+                Disbursement & Sanction Order
               </span>
               <span style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                {isApproved ? 'Sanctioned & Active' : 'Awaiting Board Approval'}
+                {isApproved ? 'Grant Sanction Released' : 'Awaiting Administrative Approval'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* 8. Bottom Action Bar */}
+        {/* 8. Bottom Sticky Navigation & Approval Action Bar */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '18px 24px',
-            background: 'var(--bg-card, #FFFFFF)',
-            borderRadius: '14px',
-            border: '1px solid var(--border-default)',
-            boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)'
+            paddingTop: '16px',
+            borderTop: '1px solid var(--border-default)'
           }}
         >
           <button
@@ -609,8 +646,9 @@ export default function SchemeApplicationDetailsView() {
                   padding: '0 20px',
                   fontSize: '13px',
                   fontWeight: 600,
-                  background: '#12B76A',
-                  borderColor: '#12B76A'
+                  background: '#6336EB',
+                  borderColor: '#6336EB',
+                  color: '#FFFFFF'
                 }}
               >
                 {isApproving ? 'Approving...' : 'Approve Application'}
@@ -630,100 +668,122 @@ export default function SchemeApplicationDetailsView() {
       </div>
 
       {/* Confirmation Modal when user clicks Approve */}
-      {showConfirmModal && (
-        <div
-          className="modal-backdrop open"
-          style={{ display: 'flex', zIndex: 1200 }}
-          onClick={(e) => {
-            if (e.target.classList.contains('modal-backdrop')) setShowConfirmModal(false);
-          }}
-        >
+      {showConfirmModal &&
+        createPortal(
           <div
-            className="modal-dialog"
+            className="modal-backdrop open"
             style={{
-              maxWidth: '440px',
-              width: '90%',
-              borderRadius: '16px',
-              padding: '24px',
-              textAlign: 'center',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 999999,
+              backgroundColor: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              padding: '16px',
+              boxSizing: 'border-box'
+            }}
+            onClick={(e) => {
+              if (e.target.classList.contains('modal-backdrop')) setShowConfirmModal(false);
             }}
           >
             <div
+              className="modal-dialog"
               style={{
-                width: '54px',
-                height: '54px',
-                borderRadius: '50%',
-                background: '#ECFDF3',
-                color: '#12B76A',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-                border: '4px solid #D1FADF'
+                maxWidth: '440px',
+                width: '90%',
+                borderRadius: '16px',
+                padding: '28px 24px 24px',
+                textAlign: 'center',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+                background: 'var(--bg-card, #FFFFFF)',
+                border: '1px solid var(--border-default)'
               }}
             >
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
-            </div>
+              <h3 style={{ margin: '0 0 10px', fontSize: '19px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Approve Scheme Application?
+              </h3>
 
-            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Approve Scheme Application?
-            </h3>
+              <p style={{ margin: '0 0 20px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Are you sure you want to approve grant funding for{' '}
+                <strong style={{ color: 'var(--text-primary)' }}>{app.applicant || app.name}</strong>?
+              </p>
 
-            <p style={{ margin: '0 0 18px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Are you sure you want to approve grant funding for{' '}
-              <strong style={{ color: 'var(--text-primary)' }}>{app.applicant || app.name}</strong>?
-            </p>
-
-            <div
-              style={{
-                background: 'var(--bg-subtle, #F8FAFC)',
-                border: '1px solid var(--border-default)',
-                borderRadius: '10px',
-                padding: '12px',
-                marginBottom: '20px',
-                textAlign: 'left'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12.5px' }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>Applied Scheme:</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)', maxWidth: '220px', textAlign: 'right' }}>
-                  {app.schemeTitle || app.scheme}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>Grant Funding:</span>
-                <span style={{ fontWeight: 700, color: '#12B76A' }}>
-                  {app.requestedAmount || app.funding || '₹10,00,000'}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setShowConfirmModal(false)}
-                style={{ flex: 1, height: '38px', fontSize: '13px', fontWeight: 600 }}
+              <div
+                style={{
+                  background: 'var(--bg-subtle, #F8FAFC)',
+                  border: '1px solid var(--border-default)',
+                  borderRadius: '10px',
+                  padding: '14px',
+                  marginBottom: '22px',
+                  textAlign: 'left'
+                }}
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleConfirmApprove}
-                disabled={isApproving}
-                style={{ flex: 1, height: '38px', fontSize: '13px', fontWeight: 600, background: '#12B76A', borderColor: '#12B76A' }}
-              >
-                {isApproving ? 'Approving...' : 'Yes, Approve'}
-              </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>Applied Scheme:</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', maxWidth: '220px', textAlign: 'right' }}>
+                    {app.schemeTitle || app.scheme}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>Grant Funding:</span>
+                  <span style={{ fontWeight: 700, color: '#6336EB' }}>
+                    {app.requestedAmount || app.funding || '₹10,00,000'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowConfirmModal(false)}
+                  style={{
+                    flex: 1,
+                    height: '42px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleConfirmApprove}
+                  disabled={isApproving}
+                  style={{
+                    flex: 1,
+                    height: '42px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    background: '#6336EB',
+                    borderColor: '#6336EB',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center'
+                  }}
+                >
+                  {isApproving ? 'Approving...' : 'Yes, Approve'}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </section>
   );
 }

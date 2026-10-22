@@ -98,6 +98,7 @@ function AppContent() {
         return <OrgProfileView />;
       case 'tickets':
         return <TicketsView />;
+      case 'support':
       case 'helpCenter':
         return <HelpCenterView />;
       case 'settings':

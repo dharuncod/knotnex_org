@@ -581,9 +581,9 @@ export default function SchemesView() {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 999999,
-          backgroundColor: 'rgba(15, 23, 42, 0.96)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           padding: '16px',
           boxSizing: 'border-box'
         }}
@@ -597,37 +597,18 @@ export default function SchemesView() {
             maxWidth: '440px',
             width: '90%',
             borderRadius: '16px',
-            padding: '24px',
+            padding: '28px 24px 24px',
             textAlign: 'center',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.45)',
+            background: 'var(--bg-card, #FFFFFF)',
+            border: '1px solid var(--border-default)'
           }}
         >
-          {/* Shield / Question Icon */}
-          <div
-            style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '50%',
-              background: '#ECFDF3',
-              color: '#12B76A',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-              border: '4px solid #D1FADF'
-            }}
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-          </div>
-
-          <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <h3 style={{ margin: '0 0 10px', fontSize: '19px', fontWeight: 700, color: 'var(--text-primary)' }}>
             Approve Scheme Application?
           </h3>
 
-          <p style={{ margin: '0 0 18px', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <p style={{ margin: '0 0 20px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             Are you sure you want to approve grant funding for{' '}
             <strong style={{ color: 'var(--text-primary)' }}>{appToApprove.applicant || appToApprove.name}</strong>?
           </p>
@@ -638,31 +619,40 @@ export default function SchemesView() {
               background: 'var(--bg-subtle, #F8FAFC)',
               border: '1px solid var(--border-default)',
               borderRadius: '10px',
-              padding: '12px',
-              marginBottom: '20px',
+              padding: '14px',
+              marginBottom: '22px',
               textAlign: 'left'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12.5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>Applied Scheme:</span>
               <span style={{ fontWeight: 600, color: 'var(--text-primary)', maxWidth: '220px', textAlign: 'right' }}>
                 {appToApprove.schemeTitle || appToApprove.scheme}
               </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>Grant Funding:</span>
-              <span style={{ fontWeight: 700, color: '#12B76A' }}>
+              <span style={{ fontWeight: 700, color: '#6336EB' }}>
                 {appToApprove.requestedAmount || appToApprove.funding || '₹10,00,000'}
               </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button
               type="button"
               className="btn-secondary"
               onClick={() => setAppToApprove(null)}
-              style={{ flex: 1, height: '38px', fontSize: '13px', fontWeight: 600 }}
+              style={{
+                flex: 1,
+                height: '42px',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center'
+              }}
             >
               Cancel
             </button>
@@ -670,7 +660,19 @@ export default function SchemesView() {
               type="button"
               className="btn-primary"
               onClick={handleConfirmApprove}
-              style={{ flex: 1, height: '38px', fontSize: '13px', fontWeight: 600, background: '#12B76A', borderColor: '#12B76A' }}
+              style={{
+                flex: 1,
+                height: '42px',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                background: '#6336EB',
+                borderColor: '#6336EB',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center'
+              }}
             >
               Yes, Approve
             </button>

@@ -104,6 +104,70 @@ export function AppProvider({ children }) {
   const [knowledgeCategories] = useState(initialState.knowledgeCategories || []);
   const [helpArticles] = useState(initialState.helpArticles || []);
 
+  // Account Settings (Display Name, Email, Phone, Organization Name, Subscription)
+  const [accountSettings, setAccountSettings] = useState(() => {
+    try {
+      const stored = localStorage.getItem('knotnex_account_settings');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+    return {
+      displayName: 'Ravi Prasanth',
+      email: 'ravi@knotnex.com',
+      phone: '+91 98765 43210',
+      orgName: 'Knotbox Technologies Foundation',
+      plan: 'Enterprise — Active Tier'
+    };
+  });
+
+  const updateAccountSettings = (newSettings) => {
+    setAccountSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem('knotnex_account_settings', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  // Support Queries State (User submitted queries / Ask Anything form)
+  const [supportQueries, setSupportQueries] = useState(() => {
+    try {
+      const stored = localStorage.getItem('knotnex_support_queries');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      {
+        id: 'SUP-9281',
+        createdAt: '12 Oct 2026, 14:30',
+        name: 'Ravi Prasanth',
+        email: 'ravi@knotnex.com',
+        category: 'Event Management & Ticketing',
+        subject: 'How do I generate attendee QR badges in bulk?',
+        message: 'We have 450 registered delegates for our upcoming Tech Summit. Can we export and trigger automatic QR badge generation directly to attendee WhatsApp/Email in batch mode?',
+        status: 'Resolved',
+        priority: 'Medium'
+      }
+    ];
+  });
+
+  const addSupportQuery = (query) => {
+    setSupportQueries(prev => {
+      const updated = [query, ...prev];
+      try {
+        localStorage.setItem('knotnex_support_queries', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
   // Show Toast Helper (Replaces previous popup immediately so notifications don't stack upwards)
   const showToast = (message, type = 'info') => {
     if (toastTimerRef.current) {
@@ -457,6 +521,11 @@ export function AppProvider({ children }) {
     setOrgProfile,
     knowledgeCategories,
     helpArticles,
+    // Account Settings & Support Queries
+    accountSettings,
+    updateAccountSettings,
+    supportQueries,
+    addSupportQuery,
     // Mutation Handlers
     addEvent,
     updateEvent,
