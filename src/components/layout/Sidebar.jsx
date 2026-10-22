@@ -16,8 +16,8 @@ export default function Sidebar() {
   // Single-open accordion state: only ONE menu ('events' | 'careers' | 'schemes') can be open at a time!
   const [openMenu, setOpenMenu] = useState(() => {
     if (['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView)) return 'events';
-    if (['careers', 'createOpportunity'].includes(activeView)) return 'careers';
-    if (['schemes', 'createScheme'].includes(activeView)) return 'schemes';
+    if (['careers', 'careerDetails', 'createOpportunity'].includes(activeView)) return 'careers';
+    if (['schemes', 'schemeDetails', 'createScheme'].includes(activeView)) return 'schemes';
     return null;
   });
 
@@ -25,9 +25,9 @@ export default function Sidebar() {
   useEffect(() => {
     if (['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView)) {
       setOpenMenu('events');
-    } else if (['careers', 'createOpportunity'].includes(activeView)) {
+    } else if (['careers', 'careerDetails', 'createOpportunity'].includes(activeView)) {
       setOpenMenu('careers');
-    } else if (['schemes', 'createScheme'].includes(activeView)) {
+    } else if (['schemes', 'schemeDetails', 'createScheme'].includes(activeView)) {
       setOpenMenu('schemes');
     }
   }, [activeView]);
@@ -45,8 +45,8 @@ export default function Sidebar() {
   };
 
   const isEventsActive = ['events', 'eventDetails', 'eventPasses', 'tickets', 'createEvent'].includes(activeView);
-  const isCareersActive = ['careers', 'createOpportunity'].includes(activeView);
-  const isSchemesActive = ['schemes', 'createScheme'].includes(activeView);
+  const isCareersActive = ['careers', 'careerDetails', 'createOpportunity'].includes(activeView);
+  const isSchemesActive = ['schemes', 'schemeDetails', 'createScheme'].includes(activeView);
 
   return (
     <>

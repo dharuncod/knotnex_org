@@ -75,10 +75,12 @@ export default function CareersView() {
   };
 
   const activeJobsCount = jobs.filter(j => j.status === 'active').length;
+  const completedJobsCount = jobs.filter(j => j.status === 'closed' || j.status === 'completed').length;
   const totalAppsCount = applications.length;
 
   const filteredJobs = jobs.filter(j => {
-    if (jobFilter !== 'all' && j.status !== jobFilter) return false;
+    if (jobFilter === 'active' && j.status !== 'active') return false;
+    if (jobFilter === 'completed' && j.status !== 'closed' && j.status !== 'completed') return false;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       const match = j.title.toLowerCase().includes(q) ||
@@ -221,37 +223,49 @@ export default function CareersView() {
         <div className="sheets-console-top-bar">
           <div className="sheets-count-cluster">
             <span className="sheets-count-number">
-              {activeTab === 'jobs' ? jobs.length : applications.length}
+              {activeTab === 'jobs' ? filteredJobs.length : filteredApps.length}
             </span>
             <span className="sheets-count-label">
               {activeTab === 'jobs' ? 'Job Opportunities' : 'Applications'}
             </span>
           </div>
 
-          <div className="sheets-status-filter-pills">
-            <button
-              className={`sheets-filter-pill-btn ${activeTab === 'jobs' ? 'active' : ''}`}
-              id="tabCareersJobs"
-              onClick={() => handleTabChange('jobs')}
-            >
-              Job Opportunities ({jobs.length})
-            </button>
-            <button
-              className={`sheets-filter-pill-btn ${activeTab === 'applications' ? 'active' : ''}`}
-              id="tabCareersApplications"
-              onClick={() => handleTabChange('applications')}
-            >
-              Applications ({applications.length})
-            </button>
-          </div>
+          {activeTab === 'jobs' && (
+            <div className="sheets-status-filter-pills">
+              <button
+                type="button"
+                className={`sheets-filter-pill-btn ${jobFilter === 'all' ? 'active' : ''}`}
+                id="filterJobAll"
+                onClick={() => setJobFilter('all')}
+              >
+                All ({jobs.length})
+              </button>
+              <button
+                type="button"
+                className={`sheets-filter-pill-btn ${jobFilter === 'active' ? 'active' : ''}`}
+                id="filterJobActive"
+                onClick={() => setJobFilter('active')}
+              >
+                Active ({activeJobsCount})
+              </button>
+              <button
+                type="button"
+                className={`sheets-filter-pill-btn ${jobFilter === 'completed' ? 'active' : ''}`}
+                id="filterJobCompleted"
+                onClick={() => setJobFilter('completed')}
+              >
+                Completed ({completedJobsCount})
+              </button>
+            </div>
+          )}
 
           <div className="sheets-console-actions">
             <SearchBar
               id="careersSearchInput"
-              placeholder={activeTab === 'jobs' ? "Search roles, departments, categories..." : "Search candidates, roles..."}
+              placeholder={activeTab === 'jobs' ? "Search roles, departments, locations..." : "Search candidates, roles..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              width="320px"
+              width="280px"
             />
             <button
               className="circle-action-btn"
@@ -259,7 +273,6 @@ export default function CareersView() {
               title="Refresh careers stream"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              style={{ marginLeft: '-18px', marginRight: '10px' }}
             >
               <svg
                 width="15"

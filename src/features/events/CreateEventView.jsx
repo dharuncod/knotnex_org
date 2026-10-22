@@ -89,7 +89,7 @@ export default function CreateEventView({
   onNavigate: propOnNavigate,
   addToast: propAddToast
 }) {
-  const appContext = useApp ? useApp() : {};
+  const appContext = useApp() || {};
   const setEvents = propSetEvents || appContext.setEvents;
   const onNavigate = propOnNavigate || appContext.navigateTo;
   const addToast = propAddToast || appContext.showToast;

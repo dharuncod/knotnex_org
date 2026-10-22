@@ -7,6 +7,7 @@ import Header from './components/layout/Header';
 import ToastContainer from './components/common/ToastContainer';
 import LoginModal from './components/common/LoginModal';
 import ModalManager from './components/modals/ModalManager';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import { ViewSkeleton, SidebarSkeleton, HeaderSkeleton } from './components/skeletons';
 
 // Views
@@ -20,6 +21,8 @@ import CareersView from './views/CareersView';
 import CreateOpportunityView from './views/CreateOpportunityView';
 import CareerDetailsView from './views/CareerDetailsView';
 import SchemesView from './views/SchemesView';
+import SchemeDetailsView from './views/SchemeDetailsView';
+import SchemeApplicationDetailsView from './views/SchemeApplicationDetailsView';
 import CreateSchemeView from './views/CreateSchemeView';
 import AchievementsView from './views/AchievementsView';
 import OrgContentView from './views/OrgContentView';
@@ -30,13 +33,17 @@ import SettingsView from './views/SettingsView';
 import NotificationsView from './views/NotificationsView';
 
 function AppContent() {
-  const { activeView, isSidebarCollapsed, isLoading, isInitialLoading } = useApp();
+  const { activeView, isSidebarCollapsed, isLoading, isInitialLoading, navigateTo } = useApp();
 
   useEffect(() => {
     const resetScroll = () => {
       const mainArea = document.getElementById('mainContentArea');
       if (mainArea) {
         mainArea.scrollTop = 0;
+      }
+      const appFrame = document.getElementById('appFrame');
+      if (appFrame && appFrame.style.visibility === 'hidden') {
+        appFrame.style.visibility = '';
       }
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
@@ -77,6 +84,10 @@ function AppContent() {
         return <CreateOpportunityView />;
       case 'schemes':
         return <SchemesView />;
+      case 'schemeDetails':
+        return <SchemeDetailsView />;
+      case 'schemeApplicationDetails':
+        return <SchemeApplicationDetailsView />;
       case 'createScheme':
         return <CreateSchemeView />;
       case 'achievements':
@@ -105,7 +116,9 @@ function AppContent() {
         <main className="main-content" id="mainContentArea">
           {isInitialLoading ? <HeaderSkeleton /> : <Header />}
           <div className="content-fade-in" key={activeView + (isLoading ? '-loading' : '-loaded')}>
-            {isLoading ? <ViewSkeleton viewKey={activeView} /> : renderActiveView()}
+            <ErrorBoundary onNavigateDashboard={() => navigateTo('dashboard')}>
+              {isLoading ? <ViewSkeleton viewKey={activeView} /> : renderActiveView()}
+            </ErrorBoundary>
           </div>
         </main>
       </div>
