@@ -10,19 +10,26 @@ export default function NotificationsView() {
     deleteNotif,
     clearAllNotifs,
     navigateTo,
-    showToast
+    showToast,
+    loadBackendData
   } = useApp();
 
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
       showToast('Notifications stream synced with live gateway!', 'success');
-    }, 450);
+    } catch {
+      showToast('Refreshed local notification view', 'info');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const unreadCount = topNotifications.filter(n => n.unread).length;

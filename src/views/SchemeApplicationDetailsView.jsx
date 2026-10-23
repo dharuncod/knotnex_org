@@ -15,26 +15,21 @@ export default function SchemeApplicationDetailsView() {
   const [isApproving, setIsApproving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Fallback if no application selected
-  const app = selectedSchemeApplication || {
-    id: 'sap-7',
-    applicant: 'Pacific Rim Net-Zero College',
-    orgType: 'Autonomous Higher Ed Institution',
-    scheme: 'Green Campus Environmental Award',
-    schemeTitle: 'Green Campus Environmental Award',
-    funding: '₹10,00,000',
-    requestedAmount: '₹10,00,000',
-    score: '9.7 / 10',
-    date: '01 Sep 2026',
-    stage: 'Site Audit Passed',
-    status: 'Approved',
-    contactPerson: 'Prof. Suresh Balakrishnan',
-    email: 'dean.infra@pacificrimcollege.edu',
-    phone: '+91 98410 88204',
-    city: 'Chennai, Tamil Nadu',
-    summary:
-      'Campus net-zero energy transformation with automated biodigesters, rainwater aquifer recharge, and solar canopy infrastructure.'
-  };
+  if (!selectedSchemeApplication) {
+    return (
+      <section className="app-view active" id="viewSchemeAppDetails">
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <h2>No grant application selected</h2>
+          <div style={{ marginTop: '16px' }}>
+            <button className="btn-secondary" onClick={() => navigateTo(schemeAppReturnView || 'schemes')}>Back to Schemes</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const app = selectedSchemeApplication;
+
 
   const isApproved = (app.status || '').toLowerCase() === 'approved';
 

@@ -7,7 +7,7 @@ import { downloadCSV } from '../utils/csvExport';
 import { downloadCandidateResume } from '../utils/resumeDownload';
 
 export default function CareersView() {
-  const { jobs, applications, activeSubAction, navigateTo, showToast, selectJob, updateJob } = useApp();
+  const { jobs, applications, activeSubAction, navigateTo, showToast, selectJob, updateJob, loadBackendData } = useApp();
 
   const handleToggleJobActive = (job) => {
     const nextStatus = job.status === 'active' ? 'closed' : 'active';
@@ -23,14 +23,20 @@ export default function CareersView() {
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     setIsTabLoading(true);
-    setTimeout(() => {
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
+      showToast('Careers database refreshed successfully!', 'success');
+    } catch {
+      showToast('Refreshed local view', 'info');
+    } finally {
       setIsTabLoading(false);
       setIsRefreshing(false);
-      showToast('Careers database refreshed successfully!', 'success');
-    }, 400);
+    }
   };
 
   const handleTabChange = (newTab) => {
@@ -338,69 +344,77 @@ export default function CareersView() {
                 </tr>
               </thead>
               <tbody>
-                {filteredJobs.map((j, idx) => (
-                  <tr
-                    key={j.id || idx}
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => selectJob(j.id)}
-                  >
-                    <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
-                      {(idx + 1).toString().padStart(2, '0')}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img
-                          src={getJobPoster(j)}
-                          alt=""
-                          style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ECECEC' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
-                            {j.title}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                            {j.experience || '2+ years exp'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="status-badge-minimal" style={{ background: '#F4F3FF', color: '#5925DC', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
-                        {j.dept}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                      {j.location} · {j.type || 'Full-time'}
-                    </td>
-                    <td style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {j.applicantsCount || 0} candidates
-                    </td>
-                    <td className="col-center" style={{ width: '85px' }} onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <button
-                          className="btn-secondary"
-                          style={{ height: '30px', padding: '0 12px', fontSize: '12px' }}
-                          onClick={() => selectJob(j.id)}
-                        >
-                          View
-                        </button>
-                      </div>
-                    </td>
-                    <td className="col-center" style={{ width: '90px', minWidth: '90px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                      <label
-                        className="active-toggle-ios"
-                        title={j.status === 'active' ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)'}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={j.status === 'active'}
-                          onChange={() => handleToggleJobActive(j)}
-                        />
-                        <span className="active-toggle-slider" />
-                      </label>
+                {filteredJobs.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--neutral-500)' }}>
+                      No career postings found. Click "+ Post Opportunity" to recruit top talent and fellows.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredJobs.map((j, idx) => (
+                    <tr
+                      key={j.id || idx}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => selectJob(j.id)}
+                    >
+                      <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <img
+                            src={getJobPoster(j)}
+                            alt=""
+                            style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #ECECEC' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
+                              {j.title}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                              {j.experience || 'Active hiring'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="status-badge-minimal" style={{ background: '#F4F3FF', color: '#5925DC', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
+                          {j.dept || 'General'}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
+                        {j.location || 'Remote'} · {j.type || 'Full-time'}
+                      </td>
+                      <td style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {j.applicantsCount || 0} candidates
+                      </td>
+                      <td className="col-center" style={{ width: '85px' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ height: '30px', padding: '0 12px', fontSize: '12px' }}
+                            onClick={() => selectJob(j.id)}
+                          >
+                            View
+                          </button>
+                        </div>
+                      </td>
+                      <td className="col-center" style={{ width: '90px', minWidth: '90px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <label
+                          className="active-toggle-ios"
+                          title={j.status === 'active' ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)'}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={j.status === 'active'}
+                            onChange={() => handleToggleJobActive(j)}
+                          />
+                          <span className="active-toggle-slider" />
+                        </label>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -429,78 +443,86 @@ export default function CareersView() {
                 </tr>
               </thead>
               <tbody>
-                {filteredApps.map((a, idx) => (
-                  <tr key={a.id || idx}>
-                    <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
-                      {(idx + 1).toString().padStart(2, '0')}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img
-                          src={getUserAvatar(a, idx)}
-                          alt=""
-                          style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
-                            {a.candidate || a.name}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                            {a.email || 'candidate@knotnex.org'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>
-                      {a.role || a.jobTitle}
-                    </td>
-                    <td style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-                      {a.date || '3 days ago'}
-                    </td>
-                    <td>
-                      <span
-                        className="status-badge"
-                        style={{
-                          background: a.status === 'Shortlisted' ? '#ECFDF3' : (a.status === 'Interview' ? '#EFF8FF' : '#FFFBEB'),
-                          color: a.status === 'Shortlisted' ? '#12B76A' : (a.status === 'Interview' ? '#175CD3' : '#B54708'),
-                          fontSize: '11px',
-                          padding: '2px 8px',
-                          borderRadius: '9999px'
-                        }}
-                      >
-                        ● {a.status || 'Under Review'}
-                      </span>
-                    </td>
-                    <td className="col-right">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                        <button
-                          className="btn-secondary"
-                          style={{
-                            height: '30px',
-                            padding: '0 12px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px'
-                          }}
-                          onClick={() => {
-                            const filename = downloadCandidateResume(a);
-                            showToast(`Downloaded resume: ${filename}`, 'success');
-                          }}
-                          title={`Download ${a.candidate || a.name}'s resume`}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                          </svg>
-                          <span>Resume</span>
-                        </button>
-                      </div>
+                {filteredApps.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--neutral-500)' }}>
+                      No candidate applications received yet. Applications submitted to your active roles will appear here.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredApps.map((a, idx) => (
+                    <tr key={a.id || idx}>
+                      <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img
+                            src={getUserAvatar(a, idx)}
+                            alt=""
+                            style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                              {a.candidate || a.name || 'Candidate'}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
+                              {a.email || '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                        {a.role || a.jobTitle || 'Role'}
+                      </td>
+                      <td style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
+                        {a.date || 'Recent'}
+                      </td>
+                      <td>
+                        <span
+                          className="status-badge"
+                          style={{
+                            background: a.status === 'Shortlisted' ? '#ECFDF3' : (a.status === 'Interview' ? '#EFF8FF' : '#FFFBEB'),
+                            color: a.status === 'Shortlisted' ? '#12B76A' : (a.status === 'Interview' ? '#175CD3' : '#B54708'),
+                            fontSize: '11px',
+                            padding: '2px 8px',
+                            borderRadius: '9999px'
+                          }}
+                        >
+                          ● {a.status || 'Under Review'}
+                        </span>
+                      </td>
+                      <td className="col-right">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{
+                              height: '30px',
+                              padding: '0 12px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px'
+                            }}
+                            onClick={() => {
+                              const filename = downloadCandidateResume(a);
+                              showToast(`Downloaded resume: ${filename}`, 'success');
+                            }}
+                            title={`Download ${a.candidate || a.name || 'Candidate'}'s resume`}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>Resume</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

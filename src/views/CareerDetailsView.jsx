@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import BackButton from '../components/common/BackButton';
 import { getJobPoster, getUserAvatar } from '../data/initialData';
@@ -6,153 +6,53 @@ import { AttendeesTableSkeleton } from '../components/skeletons';
 import SearchBar from '../components/common/SearchBar';
 import { downloadCSV } from '../utils/csvExport';
 import { downloadCandidateResume } from '../utils/resumeDownload';
+import jobsApi from '../api/jobsApi';
 
-// Base mock candidates pool matching the exact aesthetic, contact records, and fields of the Event Details view
-const INITIAL_CANDIDATES = [
-  {
-    id: 'cand-1',
-    appId: '#KNT-8401',
-    name: 'Sophia Chen',
-    email: 'sophia.c@stanford.edu',
-    phone: '+91 98401 24789',
-    headline: 'Stanford AI Lab · Research Fellow',
-    resume: 'TXN-8401-HDFC',
-    city: 'Bengaluru, KA',
-    appliedDate: '12 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-1.jpg'
-  },
-  {
-    id: 'cand-2',
-    appId: '#KNT-8402',
-    name: 'Marcus Brody',
-    email: 'marcus@brodytech.io',
-    phone: '+91 98840 31256',
-    headline: 'Brody Technologies · Lead Dev',
-    resume: 'TXN-8402-GPAY',
-    city: 'Chennai, TN',
-    appliedDate: '14 Sep 2026',
-    stage: 'In Review',
-    avatar: '/assets/avatars/avatar-2.jpg'
-  },
-  {
-    id: 'cand-3',
-    appId: '#KNT-8403',
-    name: 'Elena Rostova',
-    email: 'e.rostova@berkeley.edu',
-    phone: '+91 97910 84321',
-    headline: 'UC Berkeley · PhD Scholar',
-    resume: 'TXN-8403-UPI',
-    city: 'Hyderabad, TS',
-    appliedDate: '15 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-3.jpg'
-  },
-  {
-    id: 'cand-4',
-    appId: '#KNT-8404',
-    name: 'David Kim',
-    email: 'david@hypercloud.io',
-    phone: '+91 94441 52890',
-    headline: 'HyperCloud · Staff SRE',
-    resume: 'TXN-8404-ICICI',
-    city: 'Mumbai, MH',
-    appliedDate: '16 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-4.jpg'
-  },
-  {
-    id: 'cand-5',
-    appId: '#KNT-8405',
-    name: 'Priya Sharma',
-    email: 'priya.s@knotbox.org',
-    phone: '+91 98201 44582',
-    headline: 'Knotbox Labs · Core Contributor',
-    resume: 'TXN-8405-PHONEPE',
-    city: 'Pune, MH',
-    appliedDate: '17 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-5.jpg'
-  },
-  {
-    id: 'cand-6',
-    appId: '#KNT-8406',
-    name: 'Alexandre Dubois',
-    email: 'alex@parisventures.eu',
-    phone: '+91 98112 67890',
-    headline: 'Paris Seed Capital · Lead Architect',
-    resume: 'TXN-8406-AXIS',
-    city: 'New Delhi, DL',
-    appliedDate: '18 Sep 2026',
-    stage: 'Interviewing',
-    avatar: '/assets/avatars/avatar-6.jpg'
-  },
-  {
-    id: 'cand-7',
-    appId: '#KNT-8407',
-    name: 'Chloe Bennett',
-    email: 'c.bennett@vectorai.tech',
-    phone: '+91 99620 18452',
-    headline: 'Vector AI · Senior ML Engineer',
-    resume: 'TXN-8407-PAYTM',
-    city: 'Kochi, KL',
-    appliedDate: '19 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-7.jpg'
-  },
-  {
-    id: 'cand-8',
-    appId: '#KNT-8408',
-    name: 'Lucas Vance',
-    email: 'lucas@mit.edu',
-    phone: '+91 97104 33219',
-    headline: 'MIT CSAIL · Graduate Fellow',
-    resume: 'TXN-8408-UPI',
-    city: 'Ahmedabad, GJ',
-    appliedDate: '20 Sep 2026',
-    stage: 'In Review',
-    avatar: '/assets/avatars/avatar-8.jpg'
-  },
-  {
-    id: 'cand-9',
-    appId: '#KNT-8409',
-    name: 'Aisha Patel',
-    email: 'aisha@synthetix.io',
-    phone: '+91 98711 20456',
-    headline: 'Synthetix Foundation · Architect',
-    resume: 'TXN-8409-GPAY',
-    city: 'Gurugram, HR',
-    appliedDate: '21 Sep 2026',
-    stage: 'Shortlisted',
-    avatar: '/assets/avatars/avatar-9.jpg'
-  },
-  {
-    id: 'cand-10',
-    appId: '#KNT-8410',
-    name: 'Samuel Green',
-    email: 'sam@greentech.org',
-    phone: '+91 94450 78123',
-    headline: 'EcoGrid · Director of Engineering',
-    resume: 'TXN-8410-CRED',
-    city: 'Kolkata, WB',
-    appliedDate: '22 Sep 2026',
-    stage: 'Offered',
-    avatar: '/assets/avatars/avatar-10.jpg'
-  }
-];
+
+
 
 export default function CareerDetailsView() {
   const {
     selectedJob,
     navigateTo,
     showToast,
-    startEditJob
+    startEditJob,
+    deleteJob
   } = useApp();
 
-  const [candidateList, setCandidateList] = useState(INITIAL_CANDIDATES);
+  const [candidateList, setCandidateList] = useState([]);
   const [candidateSearch, setCandidateSearch] = useState('');
   const [candidateFilter, setCandidateFilter] = useState('all');
   const [isTabLoading, setIsTabLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (selectedJob?.id) {
+      jobsApi.getJobApplications(selectedJob.id).then(apps => {
+        if (isMounted) {
+          const mapped = (apps || []).map((a, idx) => ({
+            id: String(a.id || `app-${idx + 1}`),
+            appId: `#APP-${String(a.id || idx + 1001).substring(0, 6).toUpperCase()}`,
+            name: a.user_name || a.full_name || a.name || 'Candidate',
+            email: a.user_email || a.email || 'N/A',
+            phone: a.phone || '+91 98765 43210',
+            headline: a.headline || a.qualification || 'Applicant',
+            resume: a.resume_url || 'Resume Document',
+            city: a.location || a.city || 'India',
+            appliedDate: a.created_at ? new Date(a.created_at).toLocaleDateString() : 'Recent',
+            stage: a.stage || a.status || 'Applied',
+            avatar: getUserAvatar(a, idx)
+          }));
+          setCandidateList(mapped);
+        }
+      }).catch(() => {
+        if (isMounted) setCandidateList([]);
+      });
+    } else {
+      setCandidateList([]);
+    }
+    return () => { isMounted = false; };
+  }, [selectedJob?.id]);
 
   const handleFilterChange = (newFilter) => {
     if (newFilter === candidateFilter) return;
@@ -318,6 +218,26 @@ export default function CareerDetailsView() {
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
               </svg>
               <span>Edit Opportunity</span>
+            </button>
+            <button
+              className="btn-header-action secondary"
+              style={{ color: '#E11D48', borderColor: '#FECDD3' }}
+              id="btnDeleteJob"
+              onClick={async () => {
+                if (window.confirm(`Are you sure you want to delete "${job.title}"? This action cannot be undone.`)) {
+                  if (deleteJob) {
+                    await deleteJob(job.id);
+                  }
+                  navigateTo('careers');
+                }
+              }}
+              title="Delete this opportunity"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Delete</span>
             </button>
           </div>
         </header>

@@ -15,7 +15,8 @@ export default function SchemesView() {
     updateScheme,
     updateSchemeApplication,
     selectScheme,
-    selectSchemeApplication
+    selectSchemeApplication,
+    loadBackendData
   } = useApp();
 
   const [activeTab, setActiveTab] = useState(
@@ -46,14 +47,20 @@ export default function SchemesView() {
     showToast(`Scheme "${s.title}" marked as ${nextStatus === 'active' ? 'Active' : 'Inactive'}`, nextStatus === 'active' ? 'success' : 'info');
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     setIsTabLoading(true);
-    setTimeout(() => {
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
+      showToast('Grant schemes database synced successfully!', 'success');
+    } catch {
+      showToast('Refreshed local view', 'info');
+    } finally {
       setIsTabLoading(false);
       setIsRefreshing(false);
-      showToast('Grant schemes database synced successfully!', 'success');
-    }, 400);
+    }
   };
 
   const handleTabChange = (newTab) => {
@@ -349,69 +356,77 @@ export default function SchemesView() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSchemes.map((s, idx) => (
-                  <tr
-                    key={s.id || idx}
-                    style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
-                    onClick={() => selectScheme && selectScheme(s.id)}
-                    title={`View details for ${s.title}`}
-                  >
-                    <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
-                      {(idx + 1).toString().padStart(2, '0')}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div
-                          style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '10px',
-                            background: '#F5F3FF',
-                            color: '#6336EB',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '1px solid #EDE9FE'
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_balance</span>
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
-                            {s.title}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                            {s.eligibility || 'Non-profit and student entrepreneurs'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="status-badge-minimal" style={{ background: '#ECFDF3', color: '#027A48', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
-                        {s.category}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: '13px', fontWeight: 600, color: '#12B76A' }}>
-                      {s.grantAmount || s.value || '₹25,00,000'}
-                    </td>
-                    <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {s.deadline || '30 Nov 2026'}
-                    </td>
-                    <td className="col-center" style={{ width: '90px', minWidth: '90px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                      <label
-                        className="active-toggle-ios"
-                        title={s.status === 'active' ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)'}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={s.status === 'active'}
-                          onChange={() => handleToggleScheme(s)}
-                        />
-                        <span className="active-toggle-slider" />
-                      </label>
+                {filteredSchemes.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--neutral-500)' }}>
+                      No grant schemes found. Click "+ Post Scheme" above to create and manage developmental subsidy programs.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredSchemes.map((s, idx) => (
+                    <tr
+                      key={s.id || idx}
+                      style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                      onClick={() => selectScheme && selectScheme(s.id)}
+                      title={`View details for ${s.title}`}
+                    >
+                      <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '10px',
+                              background: '#F5F3FF',
+                              color: '#6336EB',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: '1px solid #EDE9FE'
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_balance</span>
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)' }}>
+                              {s.title}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+                              {s.eligibility || 'Open to qualified applicants'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="status-badge-minimal" style={{ background: '#ECFDF3', color: '#027A48', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
+                          {s.category || 'Grant'}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', fontWeight: 600, color: '#12B76A' }}>
+                        {s.grantAmount || s.value || 'Grant Funded'}
+                      </td>
+                      <td style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        {s.deadline || 'Open'}
+                      </td>
+                      <td className="col-center" style={{ width: '90px', minWidth: '90px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <label
+                          className="active-toggle-ios"
+                          title={s.status === 'active' ? 'Active (Click to Deactivate)' : 'Inactive (Click to Activate)'}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={s.status === 'active'}
+                            onChange={() => handleToggleScheme(s)}
+                          />
+                          <span className="active-toggle-slider" />
+                        </label>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -475,11 +490,11 @@ export default function SchemesView() {
                         {a.schemeTitle || a.scheme || a.appliedScheme || '—'}
                       </td>
                       <td style={{ fontSize: '13px', color: '#12B76A', fontWeight: 600 }}>
-                        {a.requestedAmount || a.funding || '₹10,00,000'}
+                        {a.requestedAmount || a.funding || '—'}
                       </td>
                       <td>
                         <span className="status-badge-minimal" style={{ background: '#EFF8FF', color: '#175CD3', fontSize: '11.5px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
-                          ★ {a.score || '9.4 / 10'}
+                          ★ {a.score || 'Review'}
                         </span>
                       </td>
                       <td className="col-center">

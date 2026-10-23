@@ -17,7 +17,8 @@ export default function Header() {
     clearAllNotifs,
     isMobileSidebarOpen,
     setIsMobileSidebarOpen,
-    accountSettings
+    accountSettings,
+    orgProfile
   } = useApp();
 
   const notifRef = useRef(null);
@@ -97,11 +98,11 @@ export default function Header() {
           title="Organization Profile"
         >
           <div className="appbar-avatar-circle">
-            {(accountSettings?.displayName || 'R').charAt(0).toUpperCase()}
+            {(accountSettings?.displayName || orgProfile?.name || 'A').charAt(0).toUpperCase()}
           </div>
           <div className="appbar-profile-details">
-            <span className="appbar-profile-name">{accountSettings?.displayName || 'Ravi Prasanth'}</span>
-            <span className="appbar-profile-email">{accountSettings?.email || 'ravi@knotnex.com'}</span>
+            <span className="appbar-profile-name">{accountSettings?.displayName || orgProfile?.name || 'Organization Admin'}</span>
+            <span className="appbar-profile-email">{accountSettings?.email || orgProfile?.contact_email || 'admin@knotnex.com'}</span>
           </div>
           <svg className="appbar-profile-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="6 9 12 15 18 9" />

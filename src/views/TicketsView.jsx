@@ -6,21 +6,27 @@ import SearchBar from '../components/common/SearchBar';
 import { downloadCSV } from '../utils/csvExport';
 
 export default function TicketsView() {
-  const { tickets, updateTicketStatus, openModal, showToast, setIsSidebarCollapsed } = useApp();
+  const { tickets, updateTicketStatus, openModal, showToast, setIsSidebarCollapsed, loadBackendData } = useApp();
 
   const [tabFilter, setTabFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     setIsTabLoading(true);
-    setTimeout(() => {
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
+      showToast('Support ticket inbox synced successfully!', 'success');
+    } catch {
+      showToast('Refreshed ticket inbox', 'info');
+    } finally {
       setIsTabLoading(false);
       setIsRefreshing(false);
-      showToast('Support ticket inbox synced successfully!', 'success');
-    }, 400);
+    }
   };
 
   const handleExportCSV = () => {
@@ -211,94 +217,107 @@ export default function TicketsView() {
               </tr>
             </thead>
             <tbody id="ticketsTableBody">
-              {filtered.map((t, idx) => {
-                const txnId = t.txnId || t.paymentRef || `TXN-${8400 + idx + 1}-HDFC`;
-                return (
-                  <tr key={t.id || idx} style={{ cursor: 'pointer' }} onClick={() => openModal('modalTicketIssueDetails', { ...t, txnId })}>
-                    <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
-                      {(idx + 1).toString().padStart(2, '0')}
-                    </td>
-                    <td>
-                      <div>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '12px', background: '#F2F4F7', padding: '2px 6px', borderRadius: '4px' }}>
-                          {t.id}
-                        </span>
-                        <div style={{ marginTop: '4px' }}>
-                          <span
-                            className="status-badge-minimal"
-                            style={{
-                              background: t.priority === 'High' ? '#FEF3F2' : (t.priority === 'Medium' ? '#FFFBEB' : '#F0FDF4'),
-                              color: t.priority === 'High' ? '#D92D20' : (t.priority === 'Medium' ? '#B54708' : '#16A34A'),
-                              fontSize: '10.5px',
-                              padding: '1px 6px',
-                              borderRadius: '9999px',
-                              fontWeight: 600
-                            }}
-                          >
-                            {t.priority || 'Normal'}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img
-                          src={getUserAvatar(t, idx)}
-                          alt=""
-                          style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
-                        />
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--neutral-500)' }}>
+                    No support tickets or queries found. User-reported issues, ticketing queries, and inquiries will appear here.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((t, idx) => {
+                  const txnId = t.txnId || t.paymentRef || (t.id ? `TXN-${String(t.id).slice(0, 8).toUpperCase()}` : '—');
+                  const ticketUser = typeof t.user === 'object' ? (t.user.name || t.user.email) : (t.user || t.attendee || 'Attendee');
+                  const ticketTime = t.time || (t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'Recent');
+                  const evName = t.eventName || t.event_title || 'General';
+                  const issueDesc = t.desc || t.details || t.description || t.subject || 'Inquiry';
+
+                  return (
+                    <tr key={t.id || idx} style={{ cursor: 'pointer' }} onClick={() => openModal('modalTicketIssueDetails', { ...t, txnId })}>
+                      <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
+                      <td>
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
-                            {typeof t.user === 'object' ? t.user.name : (t.user || t.attendee || 'Attendee')}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
-                            {t.time || '10m ago'}
+                          <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '12px', background: '#F2F4F7', padding: '2px 6px', borderRadius: '4px' }}>
+                            {t.id || `#TCK-${idx + 1}`}
+                          </span>
+                          <div style={{ marginTop: '4px' }}>
+                            <span
+                              className="status-badge-minimal"
+                              style={{
+                                background: t.priority === 'High' ? '#FEF3F2' : (t.priority === 'Medium' ? '#FFFBEB' : '#F0FDF4'),
+                                color: t.priority === 'High' ? '#D92D20' : (t.priority === 'Medium' ? '#B54708' : '#16A34A'),
+                                fontSize: '10.5px',
+                                padding: '1px 6px',
+                                borderRadius: '9999px',
+                                fontWeight: 600
+                              }}
+                            >
+                              {t.priority || 'Normal'}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>
-                        {t.category || t.issueType || 'General'}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {t.eventName || 'Annual Youth Tech Summit 2026'}
-                      </div>
-                    </td>
-                    <td style={{ verticalAlign: 'middle' }}>
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--text-secondary)',
-                          lineHeight: 1.4,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                        title={t.desc || t.details || t.description}
-                      >
-                        {t.desc || t.details || t.description || 'Registration pass confirmation email not received'}
-                      </div>
-                    </td>
-                    <td style={{ fontSize: '12.5px', fontWeight: 600, color: '#111827', verticalAlign: 'middle', paddingLeft: '36px' }}>
-                      {t.amount || '—'}
-                    </td>
-                    <td className="col-right" onClick={(e) => e.stopPropagation()}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                        <button
-                          className="btn-secondary"
-                          style={{ height: '32px', padding: '0 14px', fontSize: '12px', fontWeight: 600 }}
-                          onClick={() => openModal('modalTicketIssueDetails', { ...t, txnId })}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img
+                            src={getUserAvatar(t, idx)}
+                            alt=""
+                            style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                              {ticketUser}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                              {ticketTime}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                          {t.category || t.issueType || 'General'}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {evName}
+                        </div>
+                      </td>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
+                            lineHeight: 1.4,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                          title={issueDesc}
                         >
-                          View
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          {issueDesc}
+                        </div>
+                      </td>
+                      <td style={{ fontSize: '12.5px', fontWeight: 600, color: '#111827', verticalAlign: 'middle', paddingLeft: '36px' }}>
+                        {t.amount || '—'}
+                      </td>
+                      <td className="col-right" onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ height: '32px', padding: '0 14px', fontSize: '12px', fontWeight: 600 }}
+                            onClick={() => openModal('modalTicketIssueDetails', { ...t, txnId })}
+                          >
+                            View
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         )}

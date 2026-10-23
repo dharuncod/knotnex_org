@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 
 export default function OrgProfileView() {
-  const { orgProfile, setOrgProfile, setIsLoggedIn, showToast } = useApp();
+  const { orgProfile, updateOrgProfile, setOrgProfile, setIsLoggedIn, showToast } = useApp();
 
   const [formData, setFormData] = useState(orgProfile);
 
   const handleSave = (e) => {
     e.preventDefault();
-    setOrgProfile(formData);
-    showToast(`Saved changes for ${formData.name}!`, 'success');
+    if (updateOrgProfile) {
+      updateOrgProfile(formData);
+    } else {
+      setOrgProfile(formData);
+      showToast(`Saved changes for ${formData.name}!`, 'success');
+    }
   };
 
   return (
@@ -69,7 +73,8 @@ export default function OrgProfileView() {
                 type="text"
                 className="form-input"
                 id="profileRegNo"
-                value={formData.taxId || formData.regNumber || 'REG-8921-2024-KBX'}
+                value={formData.taxId || formData.regNumber || ''}
+                placeholder="e.g. GSTIN / CIN / Tax Registration"
                 onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
               />
             </div>

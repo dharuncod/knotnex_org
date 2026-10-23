@@ -15,7 +15,8 @@ export default function SchemeDetailsView() {
     showToast,
     setEditingScheme,
     updateSchemeApplication,
-    selectSchemeApplication
+    selectSchemeApplication,
+    deleteScheme
   } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,8 +46,7 @@ export default function SchemeDetailsView() {
     return sName === curName || curName.includes(sName) || sName.includes(curName);
   });
 
-  // If no direct matching applications, show all applications for comprehensive institutional auditing
-  const displayApps = schemeSpecificApps.length > 0 ? schemeSpecificApps : schemeApplications;
+  const displayApps = schemeSpecificApps;
 
   const pendingCount = displayApps.filter(a => {
     const st = (a.status || '').toLowerCase();
@@ -203,6 +203,27 @@ export default function SchemeDetailsView() {
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
               </svg>
               <span>Edit Scheme</span>
+            </button>
+            <button
+              type="button"
+              className="btn-header-action secondary"
+              style={{ color: '#E11D48', borderColor: '#FECDD3' }}
+              id="btnDeleteScheme"
+              onClick={async () => {
+                if (window.confirm(`Are you sure you want to delete "${scheme.title}"? This action cannot be undone.`)) {
+                  if (deleteScheme) {
+                    await deleteScheme(scheme.id);
+                  }
+                  navigateTo('schemes');
+                }
+              }}
+              title="Delete this scheme"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              <span>Delete</span>
             </button>
           </div>
         </header>
@@ -490,15 +511,15 @@ export default function SchemeDetailsView() {
                         </div>
                       </td>
                       <td style={{ fontSize: '13px', color: '#12B76A', fontWeight: 600 }}>
-                        {a.requestedAmount || a.funding || '₹10,00,000'}
+                        {a.requestedAmount || a.funding || '—'}
                       </td>
                       <td>
                         <span className="status-badge-minimal" style={{ background: '#EFF8FF', color: '#175CD3', fontSize: '11.5px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
-                          ★ {a.score || '9.4 / 10'}
+                          ★ {a.score || 'Review'}
                         </span>
                       </td>
                       <td style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-                        {a.stage || 'Technical Verification'}
+                        {a.stage || a.status || 'Under Review'}
                       </td>
                       <td className="col-center">
                         <button

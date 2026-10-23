@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import BackButton from '../components/common/BackButton';
 import { getEventPoster, getUserAvatar } from '../data/initialData';
 import { AttendeesTableSkeleton } from '../components/skeletons';
 import SearchBar from '../components/common/SearchBar';
+import eventsApi from '../api/eventsApi';
 
 export default function EventDetailsView() {
   const {
@@ -12,12 +13,34 @@ export default function EventDetailsView() {
     navigateTo,
     showToast,
     checkInAttendee,
-    startEditEvent
+    startEditEvent,
+    deleteEvent
   } = useApp();
 
   const [attendeeSearch, setAttendeeSearch] = useState('');
   const [attendeeFilter, setAttendeeFilter] = useState('all');
   const [isTabLoading, setIsTabLoading] = useState(false);
+  const [attendees, setAttendees] = useState([]);
+  const [loadingAttendees, setLoadingAttendees] = useState(false);
+
+  useEffect(() => {
+    if (!selectedEvent?.id) return;
+    let isMounted = true;
+    setLoadingAttendees(true);
+    eventsApi.getEventAttendees(selectedEvent.id)
+      .then((data) => {
+        if (isMounted) {
+          setAttendees(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setAttendees([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingAttendees(false);
+      });
+    return () => { isMounted = false; };
+  }, [selectedEvent?.id]);
 
   const handleFilterChange = (newFilter) => {
     if (newFilter === attendeeFilter) return;
@@ -43,40 +66,41 @@ export default function EventDetailsView() {
 
   const ev = selectedEvent;
   const poster = getEventPoster(ev);
-  const totalReg = Number(ev.registered) || 840;
-  const capacity = Number(ev.capacity) || 1000;
+
+  // Filter registrations relevant to this event
+  const contextEventRegs = (registrations || []).filter(reg => 
+    reg.eventId === ev.id || reg.event_id === ev.id || reg.event === ev.name || reg.eventName === ev.name
+  );
+  const activeRegs = attendees.length > 0 ? attendees : contextEventRegs;
+
+  const totalReg = Number(ev.registered) || activeRegs.length || 0;
+  const capacity = Number(ev.capacity) || 0;
   const pct = capacity > 0 ? Math.min(100, Math.round((totalReg / capacity) * 100)) : 0;
 
   // Format and parse ticket price cleanly to prevent NaN and double ₹
-  const rawPriceStr = String(ev.ticketPrice !== undefined ? ev.ticketPrice : 550);
-  const isFree = rawPriceStr.toLowerCase().includes('free');
-  const numTicketPrice = isFree ? 0 : (parseInt(rawPriceStr.replace(/[^0-9]/g, ''), 10) || 550);
-  const cleanPriceNum = rawPriceStr.replace(/[^0-9]/g, '') || '550';
-  const displayTicketPrice = isFree ? 'Free Pass' : `₹${cleanPriceNum}`;
+  const rawPriceStr = String(ev.ticketPrice !== undefined ? ev.ticketPrice : 0);
+  const isFree = rawPriceStr.toLowerCase().includes('free') || rawPriceStr === '0';
+  const numTicketPrice = isFree ? 0 : (parseInt(rawPriceStr.replace(/[^0-9]/g, ''), 10) || 0);
+  const cleanPriceNum = rawPriceStr.replace(/[^0-9]/g, '') || '0';
+  const displayTicketPrice = isFree || numTicketPrice === 0 ? 'Free Pass' : `₹${cleanPriceNum}`;
   const totalRevenue = totalReg * numTicketPrice;
 
   const formatEventDate = (event) => {
-    if (!event) return 'Oct 15-18, 2026 · 09:00 AM - 06:00 PM';
+    if (!event) return 'TBD';
     if (event.date && (event.date.includes(' • ') || event.date.includes(' · '))) {
       return event.date.replace(' • ', ' · ');
     }
     if (event.date && event.time) {
       return `${event.date} · ${event.time}`;
     }
-    return event.date || 'Oct 15-18, 2026 · 09:00 AM - 06:00 PM';
+    return event.date || 'TBD';
   };
 
-  // Filter registrations relevant to this event (or use all mock registrations if matching)
-  const eventRegistrations = (registrations || []).filter(reg => 
-    !reg.event || reg.event === ev.name || reg.eventName === ev.name
-  );
-  const activeRegs = eventRegistrations.length > 0 ? eventRegistrations : (registrations || []);
-
-  const checkedInCount = activeRegs.filter(r => r.checkedIn || r.status === 'used').length;
-  const turnoutPct = activeRegs.length > 0 ? Math.round((checkedInCount / activeRegs.length) * 100) : 84;
+  const checkedInCount = activeRegs.filter(r => r.checkedIn || r.status === 'used' || r.status === 'attended').length;
+  const turnoutPct = activeRegs.length > 0 ? Math.round((checkedInCount / activeRegs.length) * 100) : 0;
 
   const filteredRegistrations = activeRegs.filter(reg => {
-    const isCheckedIn = reg.checkedIn || reg.status === 'used';
+    const isCheckedIn = reg.checkedIn || reg.status === 'used' || reg.status === 'attended';
     if (attendeeFilter === 'checked-in' && !isCheckedIn) return false;
     if (attendeeFilter === 'confirmed' && isCheckedIn) return false;
     if (attendeeFilter === 'paid' && reg.paymentType === 'sponsored') return false;
@@ -84,16 +108,17 @@ export default function EventDetailsView() {
 
     if (attendeeSearch) {
       const q = attendeeSearch.toLowerCase();
-      const match = (reg.name || reg.attendeeName || '').toLowerCase().includes(q) ||
-        (reg.email || '').toLowerCase().includes(q) ||
-        (reg.phone || '').toLowerCase().includes(q) ||
-        (reg.city || '').toLowerCase().includes(q) ||
-        (reg.regId || reg.ticketCode || '').toLowerCase().includes(q) ||
+      const match = (reg.name || reg.attendeeName || reg.user_name || reg.personal_info?.name || '').toLowerCase().includes(q) ||
+        (reg.email || reg.personal_info?.email || '').toLowerCase().includes(q) ||
+        (reg.phone || reg.personal_info?.phone || '').toLowerCase().includes(q) ||
+        (reg.city || reg.personal_info?.city || '').toLowerCase().includes(q) ||
+        (reg.regId || reg.ticketCode || reg.qr_code_hash || '').toLowerCase().includes(q) ||
         (reg.txnId || '').toLowerCase().includes(q);
       if (!match) return false;
     }
     return true;
   });
+
 
   return (
     <section className="app-view active" id="viewEventDetails">
@@ -172,6 +197,26 @@ export default function EventDetailsView() {
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
               </svg>
               <span>Edit Event</span>
+            </button>
+            <button
+              className="btn-header-action secondary"
+              style={{ color: '#E11D48', borderColor: '#FECDD3' }}
+              id="btnDeleteEvent"
+              onClick={async () => {
+                if (window.confirm(`Are you sure you want to delete "${ev.name}"? This action cannot be undone.`)) {
+                  if (deleteEvent) {
+                    await deleteEvent(ev.id);
+                  }
+                  navigateTo('events', 'manage-events');
+                }
+              }}
+              title="Delete this event"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Delete</span>
             </button>
           </div>
         </header>
@@ -424,7 +469,14 @@ export default function EventDetailsView() {
                   </tr>
                 ) : (
                   filteredRegistrations.map((reg, idx) => {
-                    const isCheckedIn = reg.checkedIn || reg.status === 'used';
+                    const isCheckedIn = reg.checkedIn || reg.status === 'used' || reg.status === 'attended';
+                    const attName = reg.personal_info?.name || reg.user_name || reg.name || reg.attendeeName || 'Attendee';
+                    const attEmail = reg.personal_info?.email || reg.email || '—';
+                    const attPhone = reg.personal_info?.phone || reg.phone || '—';
+                    const attPassId = reg.regId || reg.ticketCode || (reg.qr_code_hash ? `#${reg.qr_code_hash.slice(0, 8).toUpperCase()}` : (reg.id ? `#REG-${reg.id.slice(0, 6).toUpperCase()}` : '—'));
+                    const attTxn = reg.txnId || reg.transaction_id || (reg.id ? `TXN-${reg.id.slice(0, 8).toUpperCase()}` : 'Direct');
+                    const attCity = reg.personal_info?.city || reg.city || '—';
+                    const attDate = reg.date || reg.registeredDate || (reg.created_at ? new Date(reg.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
                     return (
                       <tr key={reg.id || idx}>
                         <td className="col-center" style={{ textAlign: "center", color: "var(--neutral-400)", fontWeight: 600, fontSize: "12px" }}>
@@ -433,48 +485,48 @@ export default function EventDetailsView() {
                         <td>
                           <div className="attendee-user-cell">
                             <div className="attendee-avatar-initial with-photo">
-                              <img src={getUserAvatar(reg, idx)} alt={reg.name} className="attendee-avatar-img" />
-                              <span className="avatar-initial-fallback">{(reg.name || 'A').charAt(0)}</span>
+                              <img src={getUserAvatar(reg, idx)} alt={attName} className="attendee-avatar-img" />
+                              <span className="avatar-initial-fallback">{(attName || 'A').charAt(0)}</span>
                             </div>
                             <div className="attendee-name-col">
-                              <span className="attendee-name-title">{reg.name || 'Attendee'}</span>
+                              <span className="attendee-name-title">{attName}</span>
                               <span className="attendee-org-sub">{reg.org || 'Delegate'}</span>
                             </div>
                           </div>
                         </td>
                         <td style={{ fontSize: "12.5px", color: "var(--neutral-600)" }}>
-                          {reg.email || 'attendee@knotnex.org'}
+                          {attEmail}
                         </td>
                         <td>
                           <div className="attendee-phone-cell">
                             <svg className="attendee-phone-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                             </svg>
-                            <span>{reg.phone || '+91 98401 00000'}</span>
+                            <span>{attPhone}</span>
                           </div>
                         </td>
                         <td>
                           <span style={{ fontFamily: "monospace", fontSize: "12px", fontWeight: 600, color: "var(--knotnex-primary)" }}>
-                            {reg.regId || reg.ticketCode || `#KNT-${8400 + idx + 1}`}
+                            {attPassId}
                           </span>
                         </td>
                         <td>
                           <span style={{ fontFamily: "monospace", fontSize: "11.5px", color: "var(--neutral-500)" }}>
-                            {reg.txnId || `TXN-${8400 + idx + 1}-HDFC`}
+                            {attTxn}
                           </span>
                         </td>
                         <td style={{ fontSize: "12.5px", color: "var(--neutral-700)" }}>
-                          {reg.city || 'Bengaluru, KA'}
+                          {attCity}
                         </td>
                         <td style={{ fontSize: "12px", color: "var(--neutral-500)" }}>
-                          {reg.date || 'Today'}
+                          {attDate}
                         </td>
                         <td>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", gap: "8px" }}>
                             <button
                               className={`status-badge-minimal ${isCheckedIn ? 'completed' : 'upcoming'}`}
                               style={{ cursor: "pointer", border: "none" }}
-                              onClick={() => checkInAttendee(reg.ticketCode || reg.id)}
+                              onClick={() => checkInAttendee(reg.ticketCode || reg.qr_code_hash || reg.id)}
                               title={isCheckedIn ? "Checked in" : "Click to check in attendee"}
                             >
                               <span className="status-dot"></span>

@@ -10,7 +10,8 @@ export default function EventsView() {
     navigateTo,
     selectEvent,
     showToast,
-    updateEvent
+    updateEvent,
+    loadBackendData
   } = useApp();
 
   const handleToggleEventActive = (ev) => {
@@ -31,12 +32,18 @@ export default function EventsView() {
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
       showToast('Events database refreshed successfully!', 'success');
-    }, 450);
+    } catch {
+      showToast('Refreshed local view', 'info');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleFilterChange = (newFilter) => {
@@ -50,9 +57,9 @@ export default function EventsView() {
 
   const parseTicketPrice = (price) => {
     if (typeof price === 'number') return price;
-    if (!price) return 550;
+    if (!price) return 0;
     const num = parseInt(String(price).replace(/[^0-9]/g, ''), 10);
-    return isNaN(num) ? 550 : num;
+    return isNaN(num) ? 0 : num;
   };
 
   // Compute KPI totals
@@ -291,11 +298,18 @@ export default function EventsView() {
                 </tr>
               </thead>
               <tbody id="eventsTableBody">
-                {filteredEvents.map((ev, idx) => {
-                  const pct = Math.min(100, Math.round(((ev.registered || 0) / (ev.capacity || 1)) * 100));
-                  const isActive = ev.status !== 'inactive' && ev.active !== false;
-                  return (
-                    <tr key={ev.id} style={{ cursor: 'pointer' }} onClick={() => selectEvent(ev.id)}>
+                {filteredEvents.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--neutral-500)' }}>
+                      No events found. Click "+ Create Event" above to launch your first organizational conference or workshop.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEvents.map((ev, idx) => {
+                    const pct = Math.min(100, Math.round(((ev.registered || 0) / (ev.capacity || 1)) * 100));
+                    const isActive = ev.status !== 'inactive' && ev.active !== false;
+                    return (
+                      <tr key={ev.id} style={{ cursor: 'pointer' }} onClick={() => selectEvent(ev.id)}>
                       <td className="col-center" style={{ textAlign: 'center', color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
                         {(idx + 1).toString().padStart(2, '0')}
                       </td>
@@ -361,7 +375,8 @@ export default function EventsView() {
                       </td>
                     </tr>
                   );
-                })}
+                })
+              )}
               </tbody>
             </table>
           )}

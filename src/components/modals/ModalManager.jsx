@@ -7,6 +7,7 @@ export default function ModalManager() {
     modalData,
     closeModal,
     events,
+    registrations,
     addCampaign,
     addAchievement,
     addContentPost,
@@ -37,13 +38,13 @@ export default function ModalManager() {
     email: '',
     phone: '',
     org: '',
-    eventId: 'ev-1',
+    eventId: events?.[0]?.id || '',
     tier: 'General Delegate',
     gate: 'Gate 1 (Main Hall)',
     sendEmail: true
   });
   // 6. Add attendee modal
-  const [addAttendeeForm, setAddAttendeeForm] = useState({ name: '', email: '', eventId: 'ev-1', tier: 'General Delegate' });
+  const [addAttendeeForm, setAddAttendeeForm] = useState({ name: '', email: '', eventId: events?.[0]?.id || '', tier: 'General Delegate' });
   // 7. Preview tab state
   const [previewTab, setPreviewTab] = useState('page');
   // 8. Gate scan success state
@@ -464,13 +465,13 @@ export default function ModalManager() {
       {activeModal === 'modalViewTicketPass' && (() => {
         const isCheckedIn = modalData?.status === 'used' || modalData?.checkedIn;
         const isExpired = modalData?.status === 'expired';
-        const passCode = modalData?.ticketCode || modalData?.regId || modalData?.passCode || '#KNT-8401';
-        const attendeeName = modalData?.name || modalData?.attendeeName || 'Attendee';
-        const attendeeEmail = modalData?.email || 'attendee@knotnex.org';
-        const eventName = modalData?.eventName || modalData?.event || 'Annual Youth Tech Summit 2026';
-        const eventLocation = modalData?.location || modalData?.city || 'Moscone Center & Virtual Stages';
-        const passTier = modalData?.tier || modalData?.type || 'General Access';
-        const gate = modalData?.gate || 'Gate 1 (Main Hall)';
+        const passCode = modalData?.ticketCode || modalData?.regId || (modalData?.qr_code_hash ? `#${modalData.qr_code_hash.slice(0, 8).toUpperCase()}` : (modalData?.id ? `#PASS-${modalData.id.slice(0, 6).toUpperCase()}` : '—'));
+        const attendeeName = modalData?.personal_info?.name || modalData?.user_name || modalData?.name || modalData?.attendeeName || 'Attendee';
+        const attendeeEmail = modalData?.personal_info?.email || modalData?.email || '—';
+        const eventName = modalData?.eventName || modalData?.event_title || modalData?.event || 'Official Event';
+        const eventLocation = modalData?.personal_info?.city || modalData?.location || modalData?.city || 'Main Venue';
+        const passTier = modalData?.tier || modalData?.type || 'Standard Pass';
+        const gate = modalData?.gate || 'Main Entrance';
 
         return (
           <div
@@ -1219,18 +1220,19 @@ export default function ModalManager() {
                       showToast('Please enter the attendee name', 'warning');
                       return;
                     }
-                    const passCode = `#KNT-${Math.floor(8420 + Math.random() * 500)}`;
+                    const passCode = `#PASS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
                     const newPass = {
                       id: `reg-${Date.now()}`,
                       regId: passCode,
                       ticketCode: passCode,
-                      txnId: `TXN-${Math.floor(8400 + Math.random() * 500)}-ADMIN`,
+                      txnId: `TXN-${Date.now().toString(36).toUpperCase()}-ADMIN`,
                       name: issueTicketForm.name.trim(),
-                      email: issueTicketForm.email.trim() || 'attendee@knotnex.org',
-                      phone: issueTicketForm.phone?.trim() || '+91 98401 24789',
-                      org: issueTicketForm.org?.trim() || 'Independent Delegate',
-                      event: selectedEv?.name || 'Annual Youth Tech Summit 2026',
-                      eventName: selectedEv?.name || 'Annual Youth Tech Summit 2026',
+                      email: issueTicketForm.email.trim() || '—',
+                      phone: issueTicketForm.phone?.trim() || '—',
+                      org: issueTicketForm.org?.trim() || 'Delegate',
+                      eventId: selectedEv?.id || issueTicketForm.eventId,
+                      event: selectedEv?.name || 'Event',
+                      eventName: selectedEv?.name || 'Event',
                       type: issueTicketForm.tier || 'General Delegate',
                       tier: issueTicketForm.tier || 'General Delegate',
                       payment: 'Complimentary · Issued',
@@ -1239,7 +1241,7 @@ export default function ModalManager() {
                       source: 'Admin Direct Issue',
                       status: 'valid',
                       checkedIn: false,
-                      date: 'Today'
+                      date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
                     };
                     if (addRegistration) {
                       addRegistration(newPass);
@@ -1372,11 +1374,12 @@ export default function ModalManager() {
                 className="btn-primary"
                 style={{ width: '100%', justifyContent: 'center' }}
                 onClick={() => {
-                  checkInAttendee('#KNT-8401');
-                  setScanResult('#KNT-8401');
+                  const targetCode = registrations?.[0]?.ticketCode || registrations?.[0]?.qr_code_hash || registrations?.[0]?.id || 'PASS-SCAN-VERIFIED';
+                  checkInAttendee(targetCode);
+                  setScanResult(targetCode);
                 }}
               >
-                Simulate Camera Scan (#KNT-8401)
+                Simulate Camera Scan ({registrations?.[0]?.ticketCode || registrations?.[0]?.qr_code_hash?.slice(0, 8)?.toUpperCase() || 'Turnstile QR'})
               </button>
             </div>
           </div>
@@ -1397,7 +1400,7 @@ export default function ModalManager() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Rohan Verma or #KNT-8401"
+                  placeholder="e.g. Attendee Name, Email or Pass ID"
                   value={addAttendeeForm.name}
                   onChange={(e) => setAddAttendeeForm({ ...addAttendeeForm, name: e.target.value })}
                 />
@@ -1408,8 +1411,12 @@ export default function ModalManager() {
               <button
                 className="btn-primary"
                 onClick={() => {
-                  checkInAttendee(addAttendeeForm.name || '#KNT-8401');
-                  closeModal();
+                  if (addAttendeeForm.name?.trim()) {
+                    checkInAttendee(addAttendeeForm.name.trim());
+                    closeModal();
+                  } else {
+                    showToast('Please enter an attendee name or ticket code', 'warning');
+                  }
                 }}
               >
                 Verify &amp; Admit Attendee
@@ -1454,20 +1461,20 @@ export default function ModalManager() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--neutral-400)', fontWeight: 600 }}>ATTENDEE</span>
                   <span style={{ fontSize: '13px', fontWeight: 700 }}>
-                    {typeof modalData?.user === 'object' ? modalData.user.name : (modalData?.user || modalData?.attendee || 'Priya Sharma')}
+                    {typeof modalData?.user === 'object' ? (modalData.user.name || modalData.user.email) : (modalData?.user || modalData?.attendee || 'Attendee')}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--neutral-400)', fontWeight: 600 }}>TRANSACTION</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 600, color: 'var(--neutral-900)' }}>
-                      {modalData?.txnId || modalData?.paymentRef || 'TXN-8401-HDFC'}
+                      {modalData?.txnId || modalData?.paymentRef || (modalData?.id ? `TXN-${String(modalData.id).slice(0, 8).toUpperCase()}` : '—')}
                     </span>
                     <button
                       type="button"
                       className="btn-copy-txn-modal"
                       onClick={() => {
-                        const idToCopy = modalData?.txnId || modalData?.paymentRef || 'TXN-8401-HDFC';
+                        const idToCopy = modalData?.txnId || modalData?.paymentRef || (modalData?.id ? `TXN-${String(modalData.id).slice(0, 8).toUpperCase()}` : 'N/A');
                         navigator.clipboard.writeText(idToCopy);
                         setCopiedTxnModal(true);
                         showToast(`Copied Transaction ID "${idToCopy}" to clipboard!`, 'success');
@@ -1510,23 +1517,23 @@ export default function ModalManager() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '12px', color: 'var(--neutral-400)', fontWeight: 600 }}>AMOUNT</span>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#12B76A' }}>{modalData?.amount || '₹550'}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#12B76A' }}>{modalData?.amount || '—'}</span>
                 </div>
               </div>
 
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginBottom: '4px' }}>Reported Problem:</div>
                 <p style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.4 }}>
-                  {modalData?.desc || modalData?.details || 'Amount debited via net banking but pass voucher barcode not generated.'}
+                  {modalData?.desc || modalData?.details || modalData?.description || 'Issue inquiry submitted by attendee.'}
                 </p>
               </div>
 
               <div style={{ borderTop: '1px solid #ECECEC', paddingTop: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>Audit Log Steps:</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>Audit Log & Status:</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', color: '#4B5563' }}>
-                  <div>● 10:14 AM: Payment clearance received from HDFC Gateway</div>
-                  <div>● 10:15 AM: Ticket generation queue timed out</div>
-                  <div>● 10:18 AM: Support ticket automatically opened by reconciliation bot</div>
+                  <div>● Category: {modalData?.category || modalData?.issueType || 'General Inquiry'}</div>
+                  <div>● Associated Event: {modalData?.eventName || modalData?.event_title || 'Organization Event'}</div>
+                  <div>● Status: {modalData?.status || 'Open / Pending'}</div>
                 </div>
               </div>
             </div>
@@ -1534,20 +1541,15 @@ export default function ModalManager() {
             <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
               <button
                 className="btn-secondary"
-                style={{ color: '#D92D20' }}
-                onClick={() => {
-                  updateTicketStatus(modalData?.id, 'Resolved');
-                  showToast(`Refund of ${modalData?.amount || '₹550'} processed!`, 'success');
-                  closeModal();
-                }}
+                onClick={closeModal}
               >
-                Process Refund
+                Close
               </button>
               <button
                 className="btn-primary"
                 onClick={() => {
                   updateTicketStatus(modalData?.id, 'Resolved');
-                  showToast(`Ticket ${modalData?.id} marked as resolved!`, 'success');
+                  showToast(`Support ticket ${modalData?.id || ''} resolved!`, 'success');
                   closeModal();
                 }}
               >

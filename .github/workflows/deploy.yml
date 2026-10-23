@@ -1,0 +1,44 @@
+name: Deploy to org.knotnex.com (Firebase Hosting)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Web Portal
+        run: npm run build
+        env:
+          VITE_PROD_API_URL: https://knotnex-backend-389663780266.asia-south1.run.app/api/v1
+
+      - name: Deploy to Firebase Hosting via Service Account
+        if: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KNOTNEX_F68FD != '' || secrets.FIREBASE_SERVICE_ACCOUNT != '' }}"
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KNOTNEX_F68FD || secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: knotnex-f68fd
+
+      - name: Deploy to Firebase Hosting via CLI Token Fallback
+        if: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KNOTNEX_F68FD == '' && secrets.FIREBASE_SERVICE_ACCOUNT == '' && secrets.FIREBASE_TOKEN != '' }}"
+        run: npx firebase-tools deploy --only hosting --project knotnex-f68fd --token "${{ secrets.FIREBASE_TOKEN }}"

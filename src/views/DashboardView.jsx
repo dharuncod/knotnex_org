@@ -12,7 +12,8 @@ export default function DashboardView() {
     navigateTo,
     selectEvent,
     selectJob,
-    showToast
+    showToast,
+    loadBackendData
   } = useApp();
 
   const [actFilter, setActFilter] = useState('all');
@@ -21,12 +22,18 @@ export default function DashboardView() {
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
+      showToast('Dashboard stream refreshed successfully!', 'success');
+    } catch {
+      showToast('Refreshed local view', 'info');
+    } finally {
       setIsRefreshing(false);
-      showToast('Recent activities stream refreshed successfully!', 'success');
-    }, 450);
+    }
   };
 
   const handleActFilterChange = (newFilter) => {
@@ -70,9 +77,9 @@ export default function DashboardView() {
         typeLabel: 'Job',
         icon: 'work',
         poster: getJobPoster(j),
-        subtitle: `${j.dept} · ${j.location}`,
+        subtitle: `${j.dept || 'Engineering'} · ${j.location || 'Remote'}`,
         metric: `${j.applicantsCount || 0} Applications`,
-        date: '14 Sep 2026',
+        date: j.postedDate || j.date || (j.created_at ? new Date(j.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Active'),
         status: j.status,
         defaultActive: j.status === 'active',
         targetView: 'careers',
@@ -89,9 +96,9 @@ export default function DashboardView() {
         typeLabel: 'Scheme',
         icon: 'account_balance',
         poster: null,
-        subtitle: `${s.category} · ${s.eligibility ? s.eligibility.substring(0, 35) + '...' : ''}`,
+        subtitle: `${s.category || 'Grant'} · ${s.eligibility ? s.eligibility.substring(0, 35) + '...' : 'Open Eligibility'}`,
         metric: s.grantAmount || s.value || 'Grant Funded',
-        date: s.deadline || '30 Nov 2026',
+        date: s.deadline || (s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Active'),
         status: s.status,
         defaultActive: s.status === 'active',
         targetView: 'schemes',

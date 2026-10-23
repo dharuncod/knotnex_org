@@ -11,7 +11,8 @@ export default function EventPassesView() {
     openModal,
     setSelectedPass,
     checkInAttendee,
-    showToast
+    showToast,
+    loadBackendData
   } = useApp();
 
   const [filter, setFilter] = useState('all');
@@ -19,12 +20,18 @@ export default function EventPassesView() {
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    try {
+      if (loadBackendData) {
+        await loadBackendData();
+      }
       showToast('Event passes roster refreshed successfully!', 'success');
-    }, 450);
+    } catch {
+      showToast('Refreshed local view', 'info');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleExportCSV = () => {
@@ -53,23 +60,29 @@ export default function EventPassesView() {
   };
 
   const totalIssued = registrations.length;
-  const checkedIn = registrations.filter(r => r.status === 'used').length;
-  const pending = registrations.filter(r => r.status === 'valid').length;
-  const expired = registrations.filter(r => r.status === 'expired').length;
+  const checkedIn = registrations.filter(r => r.status === 'used' || r.status === 'attended' || r.checkedIn).length;
+  const pending = registrations.filter(r => r.status === 'valid' || r.status === 'confirmed').length;
+  const expired = registrations.filter(r => r.status === 'expired' || r.status === 'cancelled').length;
 
   const filtered = registrations.filter(r => {
-    if (filter === 'valid' && r.status !== 'valid') return false;
-    if (filter === 'used' && r.status !== 'used') return false;
-    if (filter === 'expired' && r.status !== 'expired') return false;
+    const isUsed = r.status === 'used' || r.status === 'attended' || r.checkedIn;
+    const isValid = r.status === 'valid' || r.status === 'confirmed';
+    const isExpired = r.status === 'expired' || r.status === 'cancelled';
+
+    if (filter === 'valid' && !isValid) return false;
+    if (filter === 'used' && !isUsed) return false;
+    if (filter === 'expired' && !isExpired) return false;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
-      const match = (r.name || r.attendeeName || '').toLowerCase().includes(q) ||
-        (r.ticketCode || '').toLowerCase().includes(q) ||
-        (r.eventName || '').toLowerCase().includes(q);
+      const match = (r.name || r.attendeeName || r.user_name || r.personal_info?.name || '').toLowerCase().includes(q) ||
+        (r.ticketCode || r.qr_code_hash || '').toLowerCase().includes(q) ||
+        (r.eventName || r.event_title || r.event || '').toLowerCase().includes(q) ||
+        (r.email || r.personal_info?.email || '').toLowerCase().includes(q);
       if (!match) return false;
     }
     return true;
   });
+
 
   return (
     <section className="app-view active" id="viewEventPasses">
@@ -285,78 +298,96 @@ export default function EventPassesView() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r, idx) => (
-                <tr key={r.id || idx}>
-                  <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
-                    {(idx + 1).toString().padStart(2, '0')}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img
-                        src={getUserAvatar(r, idx)}
-                        alt=""
-                        style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
-                          {r.name || r.attendeeName}
-                        </div>
-                        <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
-                          {r.email || 'attendee@knotnex.org'}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '12px', background: '#F2F4F7', padding: '3px 7px', borderRadius: '6px' }}>
-                      {r.ticketCode || `#KNT-${8400 + idx}`}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>
-                    {r.eventName || 'Annual Youth Tech Summit 2026'}
-                  </td>
-                  <td>
-                    <span className="status-badge-minimal" style={{ background: '#F4F3FF', color: '#5925DC', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
-                      {r.tier || 'General Access'}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className="status-badge"
-                      style={{
-                        background: r.status === 'used' ? '#ECFDF3' : (r.status === 'valid' ? '#EFF8FF' : '#FEF3F2'),
-                        color: r.status === 'used' ? '#12B76A' : (r.status === 'valid' ? '#175CD3' : '#D92D20'),
-                        fontSize: '11px',
-                        padding: '2px 8px',
-                        borderRadius: '9999px'
-                      }}
-                    >
-                      {r.status === 'used' ? '● Checked-in' : (r.status === 'valid' ? '● Active Pass' : '● Expired')}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '6px' }}>
-                      <button
-                        className="btn-secondary"
-                        style={{ height: '30px', padding: '0 8px', fontSize: '12px' }}
-                        onClick={() => openModal('modalViewTicketPass', r)}
-                      >
-                        View Pass
-                      </button>
-                      {r.status === 'valid' && (
-                        <button
-                          className="btn-primary"
-                          style={{ height: '30px', padding: '0 8px', fontSize: '11px' }}
-                          title="Simulate Turnstile Check-in"
-                          onClick={() => checkInAttendee(r.ticketCode || r.id)}
-                        >
-                          Check-in
-                        </button>
-                      )}
-                    </div>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "40px 16px", color: "var(--neutral-500)" }}>
+                    No event passes found. Passes issued to registered delegates will appear here automatically.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((r, idx) => {
+                  const isCheckedIn = r.status === 'used' || r.status === 'attended' || r.checkedIn;
+                  const isValid = r.status === 'valid' || r.status === 'confirmed';
+                  const attName = r.personal_info?.name || r.user_name || r.name || r.attendeeName || 'Attendee';
+                  const attEmail = r.personal_info?.email || r.email || '—';
+                  const passCode = r.ticketCode || (r.qr_code_hash ? `#${r.qr_code_hash.slice(0, 8).toUpperCase()}` : (r.id ? `#PASS-${r.id.slice(0, 6).toUpperCase()}` : '—'));
+                  const evTitle = r.eventName || r.event_title || r.event || '—';
+                  const passTier = r.tier || r.type || 'Standard Pass';
+
+                  return (
+                    <tr key={r.id || idx}>
+                      <td className="col-center" style={{ color: 'var(--neutral-400)', fontWeight: 600, fontSize: '12px' }}>
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img
+                            src={getUserAvatar(r, idx)}
+                            alt=""
+                            style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>
+                              {attName}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
+                              {attEmail}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '12px', background: '#F2F4F7', padding: '3px 7px', borderRadius: '6px' }}>
+                          {passCode}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>
+                        {evTitle}
+                      </td>
+                      <td>
+                        <span className="status-badge-minimal" style={{ background: '#F4F3FF', color: '#5925DC', fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
+                          {passTier}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className="status-badge"
+                          style={{
+                            background: isCheckedIn ? '#ECFDF3' : (isValid ? '#EFF8FF' : '#FEF3F2'),
+                            color: isCheckedIn ? '#12B76A' : (isValid ? '#175CD3' : '#D92D20'),
+                            fontSize: '11px',
+                            padding: '2px 8px',
+                            borderRadius: '9999px'
+                          }}
+                        >
+                          {isCheckedIn ? '● Checked-in' : (isValid ? '● Active Pass' : '● Expired')}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '6px' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ height: '30px', padding: '0 8px', fontSize: '12px' }}
+                            onClick={() => openModal('modalViewTicketPass', r)}
+                          >
+                            View Pass
+                          </button>
+                          {isValid && (
+                            <button
+                              className="btn-primary"
+                              style={{ height: '30px', padding: '0 8px', fontSize: '11px' }}
+                              title="Turnstile Gate Check-in"
+                              onClick={() => checkInAttendee(r.ticketCode || r.qr_code_hash || r.id)}
+                            >
+                              Check-in
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         )}

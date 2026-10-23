@@ -31,9 +31,30 @@ import TicketsView from './views/TicketsView';
 import HelpCenterView from './views/HelpCenterView';
 import SettingsView from './views/SettingsView';
 import NotificationsView from './views/NotificationsView';
+import FirewallGate from './components/common/FirewallGate';
 
 function AppContent() {
-  const { activeView, isSidebarCollapsed, isLoading, isInitialLoading, navigateTo } = useApp();
+  const { activeView, isSidebarCollapsed, isLoading, isInitialLoading, navigateTo, isLoggedIn, ssoError, devBypass } = useApp();
+
+  if (isInitialLoading) {
+    return (
+      <div className="desktop-viewport">
+        <div className={`desktop-app-frame ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`} id="appFrame">
+          <SidebarSkeleton />
+          <main className="main-content" id="mainContentArea">
+            <HeaderSkeleton />
+            <div className="content-fade-in">
+              <ViewSkeleton viewKey="dashboard" />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <FirewallGate onBypassDev={devBypass} ssoError={ssoError} />;
+  }
 
   useEffect(() => {
     const resetScroll = () => {
