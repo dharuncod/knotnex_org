@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#082F49" />
+      <stop offset="45%" stop-color="#0369A1" />
+      <stop offset="85%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="cyanPulse" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#F43F5E" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+    <linearGradient id="cardGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)" />
+    </linearGradient>
+    <filter id="glow4" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="400" height="500" rx="16" fill="url(#bgGrad4)" />
+
+  <!-- Digital Pulse Line -->
+  <path d="M-50,230 L80,230 L110,170 L130,290 L160,200 L180,245 L200,230 L450,230" fill="none" stroke="#38BDF8" stroke-width="2.5" opacity="0.6" filter="url(#glow4)" />
+  <path d="M-50,230 L80,230 L110,170 L130,290 L160,200 L180,245 L200,230 L450,230" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.9" />
+
+  <!-- Luminous Cross / DNA Helix Orb -->
+  <circle cx="280" cy="140" r="85" fill="#0284C7" opacity="0.5" filter="url(#glow4)" />
+  <circle cx="290" cy="130" r="45" fill="#38BDF8" opacity="0.6" filter="url(#glow4)" />
+
+  <!-- Futuristic Medical Tech Cross Graphic -->
+  <g transform="translate(195, 175)">
+    <rect x="-14" y="-55" width="28" height="110" rx="6" fill="rgba(255,255,255,0.15)" stroke="#38BDF8" stroke-width="2" />
+    <rect x="-55" y="-14" width="110" height="28" rx="6" fill="rgba(255,255,255,0.15)" stroke="#38BDF8" stroke-width="2" />
+    <!-- Center Dot -->
+    <circle cx="0" cy="0" r="8" fill="#F43F5E" filter="url(#glow4)" />
+    <!-- Floating Hex Tech Points -->
+    <circle cx="-35" cy="-35" r="3" fill="#38BDF8" />
+    <circle cx="35" cy="-35" r="3" fill="#34D399" />
+    <circle cx="-35" cy="35" r="3" fill="#34D399" />
+    <circle cx="35" cy="35" r="3" fill="#F43F5E" />
+  </g>
+
+  <!-- Top Badge -->
+  <rect x="28" y="28" width="145" height="26" rx="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+  <circle cx="42" cy="41" r="4" fill="#38BDF8" />
+  <text x="54" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1">BIOTECH &amp; AI</text>
+
+  <!-- Year Label -->
+  <text x="372" y="47" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800" fill="#38BDF8" letter-spacing="2">2026</text>
+
+  <!-- Event Title Block -->
+  <text x="28" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#38BDF8" letter-spacing="2.5">CLINICAL SYMPOSIUM</text>
+  <text x="28" y="360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">AI IN HEALTHCARE</text>
+  <text x="28" y="392" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="url(#cyanPulse)" letter-spacing="-0.5">SYMPOSIUM 2026</text>
+
+  <!-- Bottom Info Bar -->
+  <rect x="24" y="420" width="352" height="54" rx="12" fill="url(#cardGrad4)" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+  <g fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <text x="40" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">DATE</text>
+    <text x="40" y="459" font-size="12" font-weight="700">Aug 20 - 21, 2026</text>
+    <text x="200" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">LOCATION</text>
+    <text x="200" y="459" font-size="12" font-weight="700">Boston Medical Hub</text>
+  </g>
+</svg>

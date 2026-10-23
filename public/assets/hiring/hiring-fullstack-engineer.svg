@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#051329" />
+      <stop offset="50%" stop-color="#0D2D5E" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="50%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.16)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="500" rx="16" fill="url(#bgGrad)" />
+
+  <!-- Abstract Geometry & Grid -->
+  <g opacity="0.12" stroke="#FFFFFF" stroke-width="1">
+    <line x1="0" y1="100" x2="400" y2="100" />
+    <line x1="0" y1="200" x2="400" y2="200" />
+    <line x1="0" y1="300" x2="400" y2="300" />
+    <line x1="0" y1="400" x2="400" y2="400" />
+    <line x1="100" y1="0" x2="100" y2="500" />
+    <line x1="200" y1="0" x2="200" y2="500" />
+    <line x1="300" y1="0" x2="300" y2="500" />
+  </g>
+
+  <!-- Glowing Glow Orb -->
+  <circle cx="200" cy="180" r="100" fill="#3B82F6" opacity="0.25" filter="url(#glow)" />
+
+  <!-- Center Artwork -->
+  
+      <!-- Code Terminal & Microservices Architecture -->
+      <g transform="translate(200, 195)">
+        <rect x="-80" y="-60" width="160" height="105" rx="10" fill="rgba(10,25,50,0.85)" stroke="url(#neonGlow)" stroke-width="2" />
+        <circle cx="-62" cy="-45" r="3.5" fill="#EF4444" />
+        <circle cx="-50" cy="-45" r="3.5" fill="#F59E0B" />
+        <circle cx="-38" cy="-45" r="3.5" fill="#10B981" />
+        <text x="-62" y="-20" font-family="monospace" font-size="11" font-weight="700" fill="#00F5FF">&lt;KnotnexCore&gt;</text>
+        <text x="-50" y="-3" font-family="monospace" font-size="10" fill="#93C5FD">const agent = init();</text>
+        <text x="-50" y="14" font-family="monospace" font-size="10" fill="#34D399">await deploy(scale);</text>
+        <text x="-62" y="32" font-family="monospace" font-size="11" font-weight="700" fill="#00F5FF">&lt;/KnotnexCore&gt;</text>
+      </g>
+    
+
+  <!-- Top Hiring Badge -->
+  <rect x="28" y="28" width="135" height="26" rx="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.22)" stroke-width="1" />
+  <circle cx="42" cy="41" r="4" fill="#10B981" />
+  <text x="54" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1">WE'RE HIRING</text>
+
+  <!-- Brand Label -->
+  <text x="372" y="47" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" fill="#00F5FF" letter-spacing="1.5">KNOTNEX</text>
+
+  <!-- Title & Subtitle Block -->
+  <text x="28" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#00F5FF" letter-spacing="2.5">ENGINEERING & ARCHITECTURE</text>
+  <text x="28" y="358" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="25" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">STAFF ENGINEER</text>
+  <text x="28" y="388" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="url(#neonGlow)" letter-spacing="0.5">FULL STACK (NODE/REACT)</text>
+
+  <!-- Bottom Info Card -->
+  <rect x="24" y="420" width="352" height="54" rx="12" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+  <g fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <text x="40" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">EMPLOYMENT</text>
+    <text x="40" y="459" font-size="12" font-weight="700">Full-time</text>
+    <text x="200" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">LOCATION</text>
+    <text x="200" y="459" font-size="12" font-weight="700">San Francisco</text>
+  </g>
+</svg>

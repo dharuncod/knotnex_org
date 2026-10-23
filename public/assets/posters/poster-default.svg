@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGradDef" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B" />
+      <stop offset="45%" stop-color="#4338CA" />
+      <stop offset="85%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="defGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="cardGradDef" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)" />
+    </linearGradient>
+    <filter id="glowDef" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="400" height="500" rx="16" fill="url(#bgGradDef)" />
+
+  <!-- Abstract Sphere Art -->
+  <circle cx="280" cy="150" r="100" fill="#6366F1" opacity="0.4" filter="url(#glowDef)" />
+  <circle cx="290" cy="130" r="50" fill="#38BDF8" opacity="0.5" filter="url(#glowDef)" />
+
+  <g transform="translate(200, 180)">
+    <circle cx="0" cy="0" r="65" fill="none" stroke="url(#defGlow)" stroke-width="2.5" />
+    <ellipse cx="0" cy="0" rx="65" ry="24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" transform="rotate(-30)" />
+    <circle cx="0" cy="0" r="10" fill="#FFFFFF" filter="url(#glowDef)" />
+  </g>
+
+  <!-- Top Badge -->
+  <rect x="28" y="28" width="140" height="26" rx="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+  <circle cx="42" cy="41" r="4" fill="#38BDF8" />
+  <text x="54" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1">OFFICIAL EVENT</text>
+
+  <!-- Year Label -->
+  <text x="372" y="47" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800" fill="#38BDF8" letter-spacing="2">2026</text>
+
+  <!-- Event Title Block -->
+  <text x="28" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#38BDF8" letter-spacing="2.5">KNOTNEX PRESENTATION</text>
+  <text x="28" y="360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">ORGANIZATION</text>
+  <text x="28" y="392" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="url(#defGlow)" letter-spacing="-0.5">CONFERENCE</text>
+
+  <!-- Bottom Info Bar -->
+  <rect x="24" y="420" width="352" height="54" rx="12" fill="url(#cardGradDef)" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+  <g fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <text x="40" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">DATE</text>
+    <text x="40" y="459" font-size="12" font-weight="700">Scheduled 2026</text>
+    <text x="200" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">STAGE</text>
+    <text x="200" y="459" font-size="12" font-weight="700">Hybrid Conference</text>
+  </g>
+</svg>

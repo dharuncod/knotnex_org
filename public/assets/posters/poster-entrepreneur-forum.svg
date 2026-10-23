@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="40%" stop-color="#1E293B" />
+      <stop offset="85%" stop-color="#78350F" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="goldGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FDE68A" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+    <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)" />
+    </linearGradient>
+    <filter id="glow3" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="400" height="500" rx="16" fill="url(#bgGrad3)" />
+
+  <!-- Diagonal Venture Rays -->
+  <g opacity="0.25">
+    <polygon points="100,500 240,0 270,0 120,500" fill="url(#goldGlow)" />
+    <polygon points="170,500 310,0 330,0 185,500" fill="url(#goldGlow)" />
+    <polygon points="230,500 370,0 385,0 240,500" fill="url(#goldGlow)" />
+  </g>
+
+  <!-- Glowing Sun / Crown Orb -->
+  <circle cx="280" cy="150" r="90" fill="#D97706" opacity="0.4" filter="url(#glow3)" />
+  <circle cx="270" cy="140" r="50" fill="#FDE68A" opacity="0.5" filter="url(#glow3)" />
+
+  <!-- Geometric Rising Pillars / Diamond Arch -->
+  <g transform="translate(195, 180)">
+    <polygon points="0,-60 50,0 0,60 -50,0" fill="none" stroke="url(#goldGlow)" stroke-width="2.5" />
+    <polygon points="0,-40 35,0 0,40 -35,0" fill="rgba(245, 158, 11, 0.25)" stroke="#FDE68A" stroke-width="1.5" />
+    <circle cx="0" cy="0" r="8" fill="#FDE68A" filter="url(#glow3)" />
+    <!-- Radiating ticks -->
+    <line x1="0" y1="-75" x2="0" y2="-62" stroke="#FDE68A" stroke-width="2" />
+    <line x1="62" y1="0" x2="75" y2="0" stroke="#FDE68A" stroke-width="2" />
+    <line x1="0" y1="62" x2="0" y2="75" stroke="#FDE68A" stroke-width="2" />
+    <line x1="-75" y1="0" x2="-62" stroke="#FDE68A" stroke-width="2" />
+  </g>
+
+  <!-- Top Badge -->
+  <rect x="28" y="28" width="140" height="26" rx="13" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+  <circle cx="42" cy="41" r="4" fill="#F59E0B" />
+  <text x="54" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" letter-spacing="1">VENTURE &amp; SEED</text>
+
+  <!-- Year Label -->
+  <text x="372" y="47" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="800" fill="#FDE68A" letter-spacing="2">2026</text>
+
+  <!-- Event Title Block -->
+  <text x="28" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#FDE68A" letter-spacing="2.5">EXECUTIVE FORUM</text>
+  <text x="28" y="360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF" letter-spacing="-0.5">GLOBAL FOUNDERS</text>
+  <text x="28" y="392" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="url(#goldGlow)" letter-spacing="-0.5">FORUM 2026</text>
+
+  <!-- Bottom Info Bar -->
+  <rect x="24" y="420" width="352" height="54" rx="12" fill="url(#cardGrad3)" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+  <g fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <text x="40" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">DATE</text>
+    <text x="40" y="459" font-size="12" font-weight="700">Sep 12 - 14, 2026</text>
+    <text x="200" y="442" font-size="11" font-weight="500" fill="rgba(255,255,255,0.7)">LOCATION</text>
+    <text x="200" y="459" font-size="12" font-weight="700">Palais des Congrès, Paris</text>
+  </g>
+</svg>
